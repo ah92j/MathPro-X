@@ -29,7 +29,8 @@ const TOOL_PAGES: Array<{id:Page;label:string;icon:string}> = [
   {id:'matrix',label:'Matrix & vectors',icon:'▦'},{id:'complex',label:'Complex numbers',icon:'ℂ'},
   {id:'stats',label:'Statistics',icon:'σ'},{id:'number',label:'Number theory',icon:'ℕ'},
   {id:'formulas',label:'Formula library',icon:'π'},{id:'periodic',label:'Periodic table',icon:'⚛'},
-  {id:'history',label:'History',icon:'↶'},{id:'camera',label:'Camera input',icon:'▣'},\n  {id:'converter',label:'Unit converter',icon:'⇄'},
+  {id:'history',label:'History',icon:'↶'},{id:'camera',label:'Camera input',icon:'▣'},
+  {id:'converter',label:'Unit converter',icon:'⇄'},
   {id:'settings',label:'Settings',icon:'⚙'}
 ];
 const UNIT_TABLES:Record<string,Record<string,number>> = {
@@ -386,7 +387,38 @@ export default function App() {
       <div className="history-list">{history.map(item=><button key={item.id} onClick={()=>{setExpression(item.expression);setResult(item.result);setError('');setPage('calc')}}><span>{item.expression}</span><b>{item.result}</b><small>{new Date(item.createdAt).toLocaleString()}</small></button>)}</div>
     </Panel>}
 
-    {page==='converter'&&<Panel title="Unit Converter" subtitle="Length · mass · time · area · volume · speed · data · temperature">\n      <label className="field"><span>Category</span><select value={converterCategory} onChange={e=>{const category=e.target.value;setConverterCategory(category);const units=category==='Temperature'?['°C','°F','K']:Object.keys(UNIT_TABLES[category]);setConverterFrom(units[0]);setConverterTo(units[1]);setConverterResult('')}}>{['Length','Mass','Time','Area','Volume','Speed','Data','Temperature'].map(item=><option key={item} value={item}>{item}</option>)}</select></label>\n      <Field label="Value" value={converterValue} onChange={setConverterValue}/>\n      <div className="field-grid two"><label className="field"><span>From</span><select value={converterFrom} onChange={e=>setConverterFrom(e.target.value)}>{(converterCategory==='Temperature'?['°C','°F','K']:Object.keys(UNIT_TABLES[converterCategory])).map(unit=><option key={unit}>{unit}</option>)}</select></label><label className="field"><span>To</span><select value={converterTo} onChange={e=>setConverterTo(e.target.value)}>{(converterCategory==='Temperature'?['°C','°F','K']:Object.keys(UNIT_TABLES[converterCategory])).map(unit=><option key={unit}>{unit}</option>)}</select></label></div>\n      <button className="primary-action" onClick={runUnitConverter}>CONVERT UNITS</button><Output>{converterResult||'Converted value will appear here.'}</Output>\n    </Panel>}\n\n    {page==='camera'&&<Panel title="Camera Math Input" subtitle="Choose or capture a mathematical expression">
+    {page==='converter'&&<Panel title="Unit Converter" subtitle="Length · mass · time · area · volume · speed · data · temperature">
+      <label className="field">
+        <span>Category</span>
+        <select value={converterCategory} onChange={e=>{
+          const category=e.target.value;
+          setConverterCategory(category);
+          const units=category==='Temperature'?['°C','°F','K']:Object.keys(UNIT_TABLES[category]);
+          setConverterFrom(units[0]);setConverterTo(units[1]);setConverterResult('');
+        }}>
+          {['Length','Mass','Time','Area','Volume','Speed','Data','Temperature'].map(item=><option key={item} value={item}>{item}</option>)}
+        </select>
+      </label>
+      <Field label="Value" value={converterValue} onChange={setConverterValue}/>
+      <div className="field-grid two">
+        <label className="field">
+          <span>From</span>
+          <select value={converterFrom} onChange={e=>setConverterFrom(e.target.value)}>
+            {(converterCategory==='Temperature'?['°C','°F','K']:Object.keys(UNIT_TABLES[converterCategory])).map(unit=><option key={unit}>{unit}</option>)}
+          </select>
+        </label>
+        <label className="field">
+          <span>To</span>
+          <select value={converterTo} onChange={e=>setConverterTo(e.target.value)}>
+            {(converterCategory==='Temperature'?['°C','°F','K']:Object.keys(UNIT_TABLES[converterCategory])).map(unit=><option key={unit}>{unit}</option>)}
+          </select>
+        </label>
+      </div>
+      <button className="primary-action" onClick={runUnitConverter}>CONVERT UNITS</button>
+      <Output>{converterResult||'Converted value will appear here.'}</Output>
+    </Panel>}
+
+    {page==='camera'&&<Panel title="Camera Math Input" subtitle="Choose or capture a mathematical expression">
       <label className="file-picker">OPEN CAMERA / CHOOSE IMAGE<input type="file" accept="image/*" capture="environment" onChange={event=>handlePhoto(event.target.files?.[0])}/></label>
       {photo&&<img className="camera-preview" src={photo} alt="Selected equation"/>}
       <p className="muted">{ocrStatus||'OCR requires the Mathpix server credentials to be configured.'}</p>
