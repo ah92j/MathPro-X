@@ -391,7 +391,7 @@ export default function App() {
       <p className="muted small">100-digit precision applies to supported BigNumber operations; other methods can use numerical approximations.</p>
     </Panel>}
 
-    <footer className="app-footer"><button onClick={()=>setPage('calc')}>MATHPRO X</button><span>Development build · v0.2.0</span><span>{settings.angle}</span></footer>
+    <footer className="app-footer"><button onClick={()=>setPage('calc')}>MATHPRO X</button><span>Development build · v0.3.0</span><span>{settings.angle}</span></footer>
   </main>;
 }
 
