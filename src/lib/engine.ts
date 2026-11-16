@@ -64,7 +64,7 @@ export function solveEquation(source: string, variable = 'x'): string[] {
   const raw = source.trim();
   const expression = raw.includes('=') ? `(${raw.slice(0, raw.indexOf('='))})-(${raw.slice(raw.indexOf('=') + 1)})` : raw;
   const result = nerdamer.solve(normalizeExpression(expression), variable);
-  const roots = result.elements().map((root: { text(): string }) => root.text());
+  const roots = result.elements.map((root: { text(): string }) => root.text());
   if (!roots.length) return [`No supported closed-form root was returned${result.unsolved ? `: ${result.unsolved.text()}` : '.'}`];
   return roots;
 }
