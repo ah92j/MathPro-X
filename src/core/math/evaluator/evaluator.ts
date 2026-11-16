@@ -541,6 +541,8 @@ function evaluateNode(node: ExpressionNode, context: EvaluationContext): MathVal
         return decimal(BigInt(node.value).toString());
       case 'Identifier': {
         const name = node.name;
+        const variableValue = context.variables[name] ?? context.variables[name.toLowerCase()];
+        if (variableValue !== undefined) return variableValue;
         if (name === 'pi') return PI;
         if (name === 'tau') return numericMath.multiply(PI, 2) as DecimalValue;
         if (name === 'e') return E;
@@ -549,8 +551,6 @@ function evaluateNode(node: ExpressionNode, context: EvaluationContext): MathVal
         if (name === 'i') return complex(0, 1);
         if (name === 'ans') return context.ans;
         if (name === 'preAns') return context.preAns;
-        const variableValue = context.variables[name] ?? context.variables[name.toLowerCase()];
-        if (variableValue !== undefined) return variableValue;
         throw new MathEvaluationError('Unknown variable: ' + name, node.span);
       }
       case 'SexagesimalLiteral':
