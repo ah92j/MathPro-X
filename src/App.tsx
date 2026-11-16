@@ -164,7 +164,8 @@ export default function App() {
     if(key.action==='alpha'){setAlpha(v=>!v);setShift(false);return;}
     if(key.action==='angle'){setSettings(s=>({...s,angle:s.angle==='DEG'?'RAD':s.angle==='RAD'?'GRAD':'DEG'}));return;}
     if(key.action==='mode'){setPage('tools');return;}
-    if(key.action==='solve'){setPage('solver');return;}\n    if(key.action==='calculus'){setPage('calculus');return;}\n    if(key.action==='matrix'){setPage('matrix');return;}
+    if(key.action==='solve'){setPage('solver');return;}
+    if(key.action==='calculus'){setPage('calculus');return;}\n    if(key.action==='matrix'){setPage('matrix');return;}
     if(key.action==='fraction'){
       if(result){const value=Number(result);if(Number.isFinite(value)){const [p,q]=rationalApproximation(value);setResult(q===1?String(p):p+'/'+q);}}
       else insertText('/');
