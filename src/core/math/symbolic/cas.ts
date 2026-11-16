@@ -49,7 +49,7 @@ export function simplifySymbolic(source: string): SymbolicResult {
 
 export function expandSymbolic(source: string): SymbolicResult {
   const input = normalizeSymbolicInput(source);
-  return { operation: 'expand', input, output: expressionText(symbolicEngine.expand(input)) };
+  return { operation: 'expand', input, output: expressionText(symbolicEngine(input).expand()) };
 }
 
 export function factorSymbolic(source: string): SymbolicResult {
