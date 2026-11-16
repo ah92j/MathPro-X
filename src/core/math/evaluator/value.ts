@@ -107,7 +107,12 @@ export function toFiniteNumber(value: NumericInput): number {
 }
 
 export function decimalString(value: NumericInput, precision = 100): string {
-  return numericMath.format(decimal(value), {
+  let normalized = decimal(value);
+  const nearestInteger = numericMath.round(normalized) as DecimalValue;
+  const roundingError = numericMath.abs(numericMath.subtract(normalized, nearestInteger));
+  if (numericMath.smaller(roundingError, decimal('1e-80'))) normalized = nearestInteger;
+
+  return numericMath.format(normalized, {
     precision,
     lowerExp: -12,
     upperExp: 100,
