@@ -82,7 +82,6 @@ const WORD_ALIASES: Readonly<Record<string, string>> = {
   trunc: 'trunc',
   sign: 'sign',
   exp: 'exp',
-  log10: 'log10',
   logbase: 'logBase',
   factorial: 'factorial',
   gcd: 'gcd',
