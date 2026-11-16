@@ -14,7 +14,8 @@ import {
   type PostfixExpressionNode,
   type SourcePosition,
   type SourceSpan,
-  type UnaryExpressionNode
+  type UnaryExpressionNode,
+  type SexagesimalLiteralNode
 } from './nodes';
 import {
   tokenize,
@@ -205,6 +206,39 @@ class Parser {
 
     while (true) {
       const token = this.peek();
+
+      if (left.type === 'NumberLiteral' && token.kind === 'identifier' && token.value === 'deg') {
+        this.advance();
+        let minutes = '0';
+        let seconds = '0';
+        let endSpan = token.span;
+
+        if (this.peek().kind === 'number' && this.lookAhead(1).kind === 'identifier' &&
+            this.lookAhead(1).value === 'arcmin') {
+          const minuteToken = this.advance();
+          const minuteUnit = this.advance();
+          minutes = minuteToken.value ?? minuteToken.lexeme;
+          endSpan = minuteUnit.span;
+
+          if (this.peek().kind === 'number' && this.lookAhead(1).kind === 'identifier' &&
+              this.lookAhead(1).value === 'arcsec') {
+            const secondToken = this.advance();
+            const secondUnit = this.advance();
+            seconds = secondToken.value ?? secondToken.lexeme;
+            endSpan = secondUnit.span;
+          }
+        }
+
+        const dms: SexagesimalLiteralNode = {
+          type: 'SexagesimalLiteral',
+          degrees: left.value,
+          minutes,
+          seconds,
+          span: mergeSpans(left.span, endSpan)
+        };
+        left = dms;
+        continue;
+      }
 
       if (token.kind === 'operator' && (token.value === '!' || token.value === '%')) {
         if (POSTFIX_BINDING_POWER < minimumBindingPower) break;
@@ -478,6 +512,10 @@ class Parser {
 
   private peek(): Token {
     return this.tokens[this.current] ?? this.tokens[this.tokens.length - 1];
+  }
+
+  private lookAhead(distance: number): Token {
+    return this.tokens[this.current + distance] ?? this.tokens[this.tokens.length - 1];
   }
 
   private advance(): Token {
