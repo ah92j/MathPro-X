@@ -1,4 +1,5 @@
 import { all, create } from 'mathjs';
+import type { Decimal } from 'decimal.js';
 
 export const numericMath = create(all, {
   number: 'BigNumber',
@@ -8,7 +9,7 @@ export const numericMath = create(all, {
   predictable: false
 });
 
-export type DecimalValue = ReturnType<typeof numericMath.bignumber>;
+export type DecimalValue = Decimal;
 
 export interface ComplexValue {
   readonly kind: 'complex';
@@ -61,12 +62,15 @@ export function isRealValue(value: MathValue): value is DecimalValue | Sexagesim
 
 export function asDecimal(value: MathValue | NumericInput): DecimalValue {
   if (isDecimalValue(value)) return value;
-  if (isSexagesimalValue(value)) return value.totalDegrees;
+  if (typeof value === 'object' && value !== null && 'kind' in value &&
+      (value as { kind?: string }).kind === 'sexagesimal') {
+    return (value as SexagesimalValue).totalDegrees;
+  }
   if (typeof value === 'boolean') return decimal(value ? 1 : 0);
   if (typeof value === 'object') {
     throw new TypeError('A complex number or matrix cannot be used as a real scalar.');
   }
-  return decimal(value);
+  return decimal(value as NumericInput);
 }
 
 export function addDecimal(left: NumericInput, right: NumericInput): DecimalValue {
