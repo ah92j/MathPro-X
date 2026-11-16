@@ -439,7 +439,7 @@ class Parser {
     }
 
     const closing = this.expect('rightBracket', 'Expected "]" to close the array');
-    let normalizedRows = rows;
+    let normalizedRows: (readonly ExpressionNode[])[] = rows;
 
     if (rows.length === 1 && rows[0].length > 0 &&
         rows[0].every(entry => entry.type === 'ArrayExpression')) {
