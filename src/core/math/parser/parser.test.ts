@@ -114,6 +114,14 @@ describe('MathPro X Pratt parser', () => {
     expect(asBinary(parseExpression('17 mod 5')).operator).toBe('mod');
     expect(asBinary(parseExpression('10 nCr 3')).operator).toBe('nCr');
     expect(asBinary(parseExpression('x<=4')).operator).toBe('<=');
+
+    const moduloCall = parseExpression('mod(17,5)');
+    expect(moduloCall.type).toBe('CallExpression');
+    expect((moduloCall as CallExpressionNode).callee.name).toBe('mod');
+
+    const combinationCall = parseExpression('nCr(10,3)');
+    expect(combinationCall.type).toBe('CallExpression');
+    expect((combinationCall as CallExpressionNode).callee.name).toBe('nCr');
   });
 
   it('supports square roots, cube roots, nth roots and absolute-value bars', () => {
