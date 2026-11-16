@@ -18,13 +18,64 @@ function fromRadians(value: unknown, mode: AngleMode): any {
   if (mode === 'GRAD') return math.multiply(value as any, RAD_TO_GRAD);
   return value;
 }
+const ALLOWED_SYMBOLS = new Set([
+  'ans','pi','e','i','Infinity','NaN','x','y','z','t','a','b','c','n','r','theta','alpha','beta'
+]);
+const ALLOWED_FUNCTIONS = new Set([
+  'sin','cos','tan','asin','acos','atan','sinh','cosh','tanh','asinh','acosh','atanh',
+  'sqrt','cbrt','abs','floor','ceil','round','trunc','sign','exp','log','log10',
+  'factorial','combinations','permutations','gcd','lcm','mod','min','max','mean',
+  'nthRoot','pow','hypot','sec','csc','cot'
+]);
 export function normalizeExpression(source: string): string {
-  return source.replaceAll('×', '*').replaceAll('÷', '/').replaceAll('−', '-')
-    .replaceAll('π', 'pi').replaceAll('√', 'sqrt').replaceAll('Ans', 'ans')
-    .replace(/(\d)(?=(?:pi|[a-df-zA-DF-Z]|\())/g, '$1*');
+  let expression=source.trim()
+    .replaceAll('×','*').replaceAll('÷','/').replace(/[−–—]/g,'-')
+    .replaceAll('π','pi').replaceAll('√','sqrt')
+    .replaceAll('Ans','ans').replaceAll('×10^','*10^')
+    .replaceAll('²','^2').replaceAll('³','^3')
+    .replaceAll('°','')
+    .replace(/\blog\s*\(/g,'log10(')
+    .replace(/\bln\s*\(/g,'log(')
+    .replace(/\bnCr\b/g,'combinations')
+    .replace(/\bnPr\b/g,'permutations')
+    .replace(/\s+/g,' ');
+  // A calculator percent key is postfix percent, not JavaScript/Math.js modulo.
+  expression=expression.replace(/(\d+(?:\.\d*)?|\.\d+|\([^()]*\))\s*%/g,'($1/100)');
+  // Make common implicit multiplication explicit without changing identifiers.
+  expression=expression
+    .replace(/(\d)(?=(?:pi\b|[a-zA-Z]\w*\s*\())/g,'$1*')
+    .replace(/(\d)(?=pi\b)/g,'$1*')
+    .replace(/(\d|\))(?=\()/g,'$1*')
+    .replace(/\)(?=(?:\d|pi\b|[a-zA-Z]\w*))/g,')*')
+    .replace(/\b(pi|e|ans|i)(?=\d)/g,'$1*');
+  return expression;
+}
+function validateCalculatorExpression(expression:string):void {
+  const tree=math.parse(expression);
+  tree.traverse((node:MathNode) => {
+    const candidate=node as MathNode & {name?:string;fn?:MathNode};
+    if(node.type==='SymbolNode'){
+      const name=(node as any).name as string;
+      if(!ALLOWED_SYMBOLS.has(name) && !ALLOWED_FUNCTIONS.has(name)) throw new Error(`Unknown symbol: ${name}`);
+    } else if(node.type==='FunctionNode'){
+      const fnName=(candidate.fn as any)?.name;
+      if(typeof fnName==='string' && !ALLOWED_FUNCTIONS.has(fnName)) throw new Error(`Function not supported: ${fnName}`);
+    } else if(![
+      'OperatorNode','ConstantNode','ParenthesisNode','FunctionNode','SymbolNode'
+    ].includes(node.type)){
+      throw new Error('This calculator accepts mathematical expressions only.');
+    }
+  });
 }
 export function evaluateRaw(source: string, angle: AngleMode = 'DEG', ans: unknown = 0): unknown {
-  const expression = normalizeExpression(source);
+  if(!source.trim()) throw new Error('Enter a mathematical expression.');
+  let expression=normalizeExpression(source);
+  // Complete an unfinished function call when the user presses equals.
+  const open=(expression.match(/\(/g)||[]).length;
+  const close=(expression.match(/\)/g)||[]).length;
+  if(open>close) expression+=')'.repeat(open-close);
+  if(/[+*/^,.-]$/.test(expression)) throw new Error('The expression ends with an incomplete operator.');
+  validateCalculatorExpression(expression);
   const scope = {
     ans,
     sin: (x: unknown) => math.sin(radians(x, angle) as any),
@@ -33,9 +84,13 @@ export function evaluateRaw(source: string, angle: AngleMode = 'DEG', ans: unkno
     asin: (x: unknown) => fromRadians(math.asin(x as any), angle),
     acos: (x: unknown) => fromRadians(math.acos(x as any), angle),
     atan: (x: unknown) => fromRadians(math.atan(x as any), angle),
+    sinh: (x: unknown) => math.sinh(x as any),
+    cosh: (x: unknown) => math.cosh(x as any),
+    tanh: (x: unknown) => math.tanh(x as any),
     sind: (x: unknown) => math.sin(radians(x, 'DEG') as any),
     cosd: (x: unknown) => math.cos(radians(x, 'DEG') as any),
-    tand: (x: unknown) => math.tan(radians(x, 'DEG') as any)
+    tand: (x: unknown) => math.tan(radians(x, 'DEG') as any),
+    log10: (x: unknown) => math.log10(x as any)
   };
   return math.evaluate(expression, scope);
 }
