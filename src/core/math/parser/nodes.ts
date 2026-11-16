@@ -32,6 +32,13 @@ export interface IdentifierNode extends BaseNode {
   readonly name: string;
 }
 
+export interface SexagesimalLiteralNode extends BaseNode {
+  readonly type: 'SexagesimalLiteral';
+  readonly degrees: string;
+  readonly minutes: string;
+  readonly seconds: string;
+}
+
 export interface UnaryExpressionNode extends BaseNode {
   readonly type: 'UnaryExpression';
   readonly operator: UnaryOperator;
@@ -78,6 +85,7 @@ export interface AbsoluteExpressionNode extends BaseNode {
 export type ExpressionNode =
   | NumberLiteralNode
   | IdentifierNode
+  | SexagesimalLiteralNode
   | UnaryExpressionNode
   | BinaryExpressionNode
   | PostfixExpressionNode
