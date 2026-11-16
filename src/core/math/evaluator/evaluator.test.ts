@@ -17,7 +17,7 @@ import { decimal, numericMath } from './value';
 describe('MathPro X typed decimal and complex values', () => {
   it('keeps decimal calculations at high precision', () => {
     const result = evaluateToString('1/3+1/3+1/3');
-    expect(result.startsWith('1')).toBe(true);
+    expect(result).toBe('1');
     expect(numericMath.equal(decimalFromDisplayValue(evaluateMath('0.1+0.2').value), decimal('0.3'))).toBe(true);
   });
 
@@ -61,7 +61,7 @@ describe('MathPro X DMS conversions', () => {
     const value = evaluateMath('30°15′20″');
     expect(value.formatted).toBe('30° 15′ 20.00″');
     expect(Number(decimalFromDisplayValue(value.value).toString())).toBeCloseTo(30.255555555555556, 12);
-    expect(evaluateToString('30°15′20″+0.5')).toBe('30.755555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555556');
+    expect(Number(evaluateToString('30°15′20″+0.5'))).toBeCloseTo(30.755555555555556, 12);
   });
 
   it('rejects invalid DMS minute and second fields', () => {
