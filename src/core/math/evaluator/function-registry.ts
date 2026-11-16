@@ -399,7 +399,14 @@ const FUNCTIONS: Readonly<Record<string, MathFunctionDefinition>> = {
   asinh: realUnary(value => numericMath.asinh(value), 'asinh'),
   acosh: realUnary(value => numericMath.acosh(value), 'acosh'),
   atanh: realUnary(value => numericMath.atanh(value), 'atanh'),
-  sqrt: realUnary(value => numericMath.sqrt(value), 'sqrt'),
+  sqrt: definition(1, 1, args => {
+    if (isComplexValue(args[0])) return complexSquareRoot(args[0]);
+    const value = real(args[0], 'sqrt', 0);
+    if (numericMath.smaller(value, 0)) {
+      return complex(0, decimalResult(numericMath.sqrt(numericMath.abs(value))));
+    }
+    return decimalResult(numericMath.sqrt(value));
+  }),
   cbrt: realUnary(value => numericMath.cbrt(value), 'cbrt'),
   abs: realUnary(value => numericMath.abs(value), 'abs'),
   floor: realUnary(value => numericMath.floor(value), 'floor'),
