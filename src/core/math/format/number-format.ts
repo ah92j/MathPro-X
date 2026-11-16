@@ -50,7 +50,8 @@ function groupMantissa(value: string, options: NumberFormatOptions): string {
   const exponentIndex = value.search(/[eE]/);
   let mantissa = exponentIndex >= 0 ? value.slice(0, exponentIndex) : value;
   const exponent = exponentIndex >= 0 ? value.slice(exponentIndex) : '';
-  if (options.trimTrailingZeros !== false) mantissa = trimFractionZeros(mantissa);
+  const trimZeros = options.trimTrailingZeros ?? options.notation !== 'FIX';
+  if (trimZeros) mantissa = trimFractionZeros(mantissa);
 
   const parts = mantissa.split('.');
   let integer = parts[0] ?? '';
@@ -75,13 +76,19 @@ function decimalNotation(value: Decimal, notation: NumberNotation, digits: numbe
     case 'ENG': {
       const exponentText = value.abs().toExponential(0);
       const exponentMatch = /e([+-]?\d+)$/i.exec(exponentText);
-      const exponent = exponentMatch ? Number(exponentMatch[1]) : 0;
-      const engineeringExponent = Math.floor(exponent / 3) * 3;
-      const scale = decimal(10).pow(engineeringExponent);
-      const mantissa = value.div(scale);
-      const integerDigits = Math.max(1, mantissa.abs().e + 1);
-      const fractionalDigits = Math.max(0, digits - integerDigits);
-      return mantissa.toFixed(fractionalDigits) + 'e' +
+      let engineeringExponent = Math.floor((exponentMatch ? Number(exponentMatch[1]) : 0) / 3) * 3;
+      let mantissa = value.div(decimal(10).pow(engineeringExponent));
+      let integerDigits = Math.max(1, (mantissa.abs().e ?? 0) + 1);
+      let fractionalDigits = Math.max(0, digits - integerDigits);
+      let rounded = decimal(mantissa.toFixed(fractionalDigits));
+      if (rounded.abs().gte(1000)) {
+        engineeringExponent += 3;
+        mantissa = rounded.div(1000);
+        integerDigits = Math.max(1, (mantissa.abs().e ?? 0) + 1);
+        fractionalDigits = Math.max(0, digits - integerDigits);
+        rounded = decimal(mantissa.toFixed(fractionalDigits));
+      }
+      return rounded.toFixed(fractionalDigits) + 'e' +
         (engineeringExponent >= 0 ? '+' : '') + String(engineeringExponent);
     }
     case 'NORM':
