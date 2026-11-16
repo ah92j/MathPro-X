@@ -13,7 +13,7 @@ import { FORMULAS } from './lib/reference';
 import { readHistory, readSettings, saveHistory, saveSettings, type HistoryEntry } from './lib/storage';
 
 type ModelId = 'basic300'|'advanced115'|'scientific991'|'scientific991es'|'graph84';
-type Page = 'home'|'tools'|'calc'|'graph'|'solver'|'calculus'|'number'|'complex'|'stats'|'matrix'|'formulas'|'periodic'|'history'|'camera'|'settings';
+type Page = 'home'|'tools'|'calc'|'graph'|'solver'|'calculus'|'number'|'complex'|'stats'|'matrix'|'formulas'|'periodic'|'history'|'camera'|'converter'|'settings';
 type Settings = { angle: AngleMode; theme: string; };
 type KeyDef = { label:string; insert?:string; action?:'equals'|'clear'|'delete'|'shift'|'alpha'|'angle'|'mode'|'decimal'|'solve'|'calc'|'fraction'|'calculus'|'matrix'; kind?:'function'|'command'|'number'|'operator'|'equals'|'danger'; };
 const DEFAULTS: Settings = { angle: 'DEG', theme: 'graphite' };
@@ -29,10 +29,29 @@ const TOOL_PAGES: Array<{id:Page;label:string;icon:string}> = [
   {id:'matrix',label:'Matrix & vectors',icon:'▦'},{id:'complex',label:'Complex numbers',icon:'ℂ'},
   {id:'stats',label:'Statistics',icon:'σ'},{id:'number',label:'Number theory',icon:'ℕ'},
   {id:'formulas',label:'Formula library',icon:'π'},{id:'periodic',label:'Periodic table',icon:'⚛'},
-  {id:'history',label:'History',icon:'↶'},{id:'camera',label:'Camera input',icon:'▣'},
+  {id:'history',label:'History',icon:'↶'},{id:'camera',label:'Camera input',icon:'▣'},\n  {id:'converter',label:'Unit converter',icon:'⇄'},
   {id:'settings',label:'Settings',icon:'⚙'}
 ];
-const BASIC_KEYS:KeyDef[][] = [
+const UNIT_TABLES:Record<string,Record<string,number>> = {
+  Length:{mm:0.001,cm:0.01,m:1,km:1000,in:0.0254,ft:0.3048,mi:1609.344},
+  Mass:{mg:0.001,g:1,kg:1000,t:1000000,oz:28.349523125,lb:453.59237},
+  Time:{ms:0.001,s:1,min:60,h:3600,day:86400},
+  Area:{'mm²':0.000001,'cm²':0.0001,'m²':1,'km²':1000000,ha:10000,acre:4046.8564224},
+  Volume:{mL:0.001,L:1,'m³':1000,gal:3.785411784,ft³:28.316846592},
+  Speed:{'m/s':1,'km/h':1/3.6,mph:0.44704,knot:0.514444444},
+  Data:{bit:1,byte:8,KB:8000,MB:8000000,GB:8000000000}
+};
+function convertUnits(value:number,category:string,from:string,to:string):number {
+  if(!Number.isFinite(value)) throw new Error('Enter a valid numeric value.');
+  if(category==='Temperature'){
+    const celsius=from==='°C'?value:from==='°F'?(value-32)*5/9:value-273.15;
+    return to==='°C'?celsius:to==='°F'?celsius*9/5+32:celsius+273.15;
+  }
+  const units=UNIT_TABLES[category];
+  if(!units||units[from]===undefined||units[to]===undefined) throw new Error('Choose compatible units.');
+  return value*units[from]/units[to];
+}
+\nconst BASIC_KEYS:KeyDef[][] = [
   [{label:'AC',action:'clear',kind:'danger'},{label:'DEL',action:'delete',kind:'command'},{label:'%',insert:'%',kind:'function'},{label:'÷',insert:'÷',kind:'operator'}],
   [{label:'√',insert:'sqrt(',kind:'function'},{label:'x²',insert:'^2',kind:'function'},{label:'π',insert:'π',kind:'function'},{label:'×',insert:'×',kind:'operator'}],
   [{label:'7',insert:'7',kind:'number'},{label:'8',insert:'8',kind:'number'},{label:'9',insert:'9',kind:'number'},{label:'−',insert:'−',kind:'operator'}],
@@ -229,6 +248,10 @@ export default function App() {
   const runBase=()=>{try{setBaseOutput(convertBase(baseValue,sourceBase));setNumberOutput('')}catch(e){setBaseOutput(null);setNumberOutput(e instanceof Error?e.message:String(e))}};
   const runCombinations=()=>{try{setCombOutput(combinatorics(Number(n),Number(r)))}catch(e){setCombOutput(null);setNumberOutput(e instanceof Error?e.message:String(e))}};
   const runMatrix=()=>{try{setMatrixOutput(matrixOperation(matrixInput,matrixAction))}catch(e){setMatrixOutput(e instanceof Error?e.message:String(e))}};
+  const runUnitConverter=()=>{try{
+    const value=convertUnits(Number(converterValue),converterCategory,converterFrom,converterTo);
+    setConverterResult(Number(value.toPrecision(12)).toString());
+  }catch(e){setConverterResult(e instanceof Error?e.message:String(e))}};
   const pagesToTools=()=>setPage('tools');
 
   return <main className={'app theme-'+settings.theme}>
@@ -363,7 +386,7 @@ export default function App() {
       <div className="history-list">{history.map(item=><button key={item.id} onClick={()=>{setExpression(item.expression);setResult(item.result);setError('');setPage('calc')}}><span>{item.expression}</span><b>{item.result}</b><small>{new Date(item.createdAt).toLocaleString()}</small></button>)}</div>
     </Panel>}
 
-    {page==='camera'&&<Panel title="Camera Math Input" subtitle="Choose or capture a mathematical expression">
+    {page==='converter'&&<Panel title="Unit Converter" subtitle="Length · mass · time · area · volume · speed · data · temperature">\n      <label className="field"><span>Category</span><select value={converterCategory} onChange={e=>{const category=e.target.value;setConverterCategory(category);const units=category==='Temperature'?['°C','°F','K']:Object.keys(UNIT_TABLES[category]);setConverterFrom(units[0]);setConverterTo(units[1]);setConverterResult('')}}>{['Length','Mass','Time','Area','Volume','Speed','Data','Temperature'].map(item=><option key={item} value={item}>{item}</option>)}</select></label>\n      <Field label="Value" value={converterValue} onChange={setConverterValue}/>\n      <div className="field-grid two"><label className="field"><span>From</span><select value={converterFrom} onChange={e=>setConverterFrom(e.target.value)}>{(converterCategory==='Temperature'?['°C','°F','K']:Object.keys(UNIT_TABLES[converterCategory])).map(unit=><option key={unit}>{unit}</option>)}</select></label><label className="field"><span>To</span><select value={converterTo} onChange={e=>setConverterTo(e.target.value)}>{(converterCategory==='Temperature'?['°C','°F','K']:Object.keys(UNIT_TABLES[converterCategory])).map(unit=><option key={unit}>{unit}</option>)}</select></label></div>\n      <button className="primary-action" onClick={runUnitConverter}>CONVERT UNITS</button><Output>{converterResult||'Converted value will appear here.'}</Output>\n    </Panel>}\n\n    {page==='camera'&&<Panel title="Camera Math Input" subtitle="Choose or capture a mathematical expression">
       <label className="file-picker">OPEN CAMERA / CHOOSE IMAGE<input type="file" accept="image/*" capture="environment" onChange={event=>handlePhoto(event.target.files?.[0])}/></label>
       {photo&&<img className="camera-preview" src={photo} alt="Selected equation"/>}
       <p className="muted">{ocrStatus||'OCR requires the Mathpix server credentials to be configured.'}</p>
@@ -377,7 +400,7 @@ export default function App() {
       <p className="muted small">100-digit precision applies to supported BigNumber operations; other methods can use numerical approximations.</p>
     </Panel>}
 
-    <footer className="app-footer"><button onClick={()=>setPage('home')}>MATHPRO X</button><span>Development build · v0.1.0</span><span>{settings.angle}</span></footer>
+    <footer className="app-footer"><button onClick={()=>setPage('home')}>MATHPRO X</button><span>Development build · v0.2.0</span><span>{settings.angle}</span></footer>
   </main>;
 }
 
