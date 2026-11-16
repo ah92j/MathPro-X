@@ -2,12 +2,14 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import GraphCanvas, { type GraphMode } from './components/GraphCanvas';
 import {
-  evaluateRaw, formatResult, differentiate, integrateSymbolic, numericIntegral,
-  solveEquation, statistics, linearRegression, matrixOperation, isPrime,
+  evaluateRaw, formatResult, differentiate, integrateSymbolic, solveEquation, convertBase
+} from './core/math/app-bridge';
+import type { AngleMode, SupportedBase } from './core/math/app-bridge';
+import {
+  numericIntegral, statistics, linearRegression, matrixOperation, isPrime,
   primeFactors, divisors, continuedFraction, rationalApproximation, gcd, lcm,
-  convertBase, combinatorics, latexToExpression
+  combinatorics, latexToExpression
 } from './lib/engine';
-import type { AngleMode, SupportedBase } from './lib/engine';
 import { ELEMENTS } from './lib/elements';
 import { FORMULAS } from './lib/reference';
 import { readHistory, readSettings, saveHistory, saveSettings, type HistoryEntry } from './lib/storage';
@@ -134,7 +136,7 @@ export default function App() {
   const [numberOutput,setNumberOutput]=useState('');
   const [baseValue,setBaseValue]=useState('255');
   const [sourceBase,setSourceBase]=useState<SupportedBase>(10);
-  const [baseOutput,setBaseOutput]=useState<Record<string,string>|null>(null);
+  const [baseOutput,setBaseOutput]=useState<ReturnType<typeof convertBase>|null>(null);
   const [n,setN]=useState('10');
   const [r,setR]=useState('3');
   const [combOutput,setCombOutput]=useState<{permutations:string;combinations:string;factorial:string}|null>(null);
@@ -367,7 +369,7 @@ export default function App() {
     {page==='number'&&<Panel title="Number Theory" subtitle="Prime factors · divisors · continued fractions · GCD/LCM">
       <Field label="Positive integer" value={integer} onChange={setInteger}/><button className="primary-action" onClick={runNumber}>ANALYZE INTEGER</button><Output>{numberOutput||'Analysis will appear here.'}</Output>
       <div className="result-grid"><div className="stat-tile"><span>GCD(84,30)</span><b>{gcd(84,30)}</b></div><div className="stat-tile"><span>LCM(84,30)</span><b>{lcm(84,30)}</b></div></div>
-      <h3>Base conversion</h3><Field label="Input integer" value={baseValue} onChange={setBaseValue}/>
+      <h3>Base conversion</h3><Field label="Input number (fractions supported)" value={baseValue} onChange={setBaseValue}/>
       <div className="segmented">{([2,8,10,16] as SupportedBase[]).map(base=><button key={base} className={sourceBase===base?'selected':''} onClick={()=>setSourceBase(base)}>BASE {base}</button>)}</div>
       <button onClick={runBase}>CONVERT BASES</button>{baseOutput&&<Output>Binary: {baseOutput.binary}{'\n'}Octal: {baseOutput.octal}{'\n'}Decimal: {baseOutput.decimal}{'\n'}Hex: {baseOutput.hexadecimal}</Output>}
       <h3>Permutations & combinations</h3><div className="field-grid two"><Field label="n" value={n} onChange={setN}/><Field label="r" value={r} onChange={setR}/></div>
