@@ -97,6 +97,7 @@ function isPrimaryStart(token: Token): boolean {
 function isExpressionEnd(node: ExpressionNode): boolean {
   return node.type === 'NumberLiteral' ||
     node.type === 'Identifier' ||
+    node.type === 'SexagesimalLiteral' ||
     node.type === 'GroupExpression' ||
     node.type === 'ArrayExpression' ||
     node.type === 'AbsoluteExpression' ||
