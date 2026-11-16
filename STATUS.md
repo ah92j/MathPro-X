@@ -24,7 +24,7 @@ Last checked: 2026-11-16
 ## Build artifact
 
 GitHub Actions workflow:  
-https://github.com/ah92j/MathPro-X/actions/runs/43937170986
+https://github.com/ah92j/MathPro-X/actions/runs/43937387404
 
 Artifact: `mathpro-android-debug-apk`
 
