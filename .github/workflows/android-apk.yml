@@ -25,6 +25,8 @@ jobs:
           packages: platform-tools
       - name: Install dependencies
         run: npm install --no-audit --no-fund
+      - name: Run unit tests
+        run: npm test
       - name: Type-check and build web bundle
         run: npm run build
       - name: Add Android platform
