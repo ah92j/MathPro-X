@@ -320,7 +320,11 @@ export function tokenize(source: string, options: TokenizerOptions = {}): Token[
       while (isIdentifierPart(peek())) lexeme += advance();
       const lowered = lexeme.toLowerCase();
       const value = WORD_ALIASES[lowered] ?? lexeme;
-      if (WORD_OPERATORS.has(value)) emit('operator', lexeme, value, start);
+      let lookahead = offset;
+      while (/\s/u.test(source[lookahead] ?? '')) lookahead += 1;
+      const followedByCall = source[lookahead] === '(';
+
+      if (WORD_OPERATORS.has(value) && !followedByCall) emit('operator', lexeme, value, start);
       else if (value === 'not') emit('operator', lexeme, 'not', start);
       else emit('identifier', lexeme, value, start);
       continue;
