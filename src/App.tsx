@@ -13,9 +13,9 @@ import { FORMULAS } from './lib/reference';
 import { readHistory, readSettings, saveHistory, saveSettings, type HistoryEntry } from './lib/storage';
 
 type ModelId = 'basic300'|'advanced115'|'scientific991'|'scientific991es'|'graph84';
-type Page = 'home'|'calc'|'graph'|'solver'|'calculus'|'number'|'complex'|'stats'|'matrix'|'formulas'|'periodic'|'history'|'camera'|'settings';
+type Page = 'home'|'tools'|'calc'|'graph'|'solver'|'calculus'|'number'|'complex'|'stats'|'matrix'|'formulas'|'periodic'|'history'|'camera'|'settings';
 type Settings = { angle: AngleMode; theme: string; };
-type KeyDef = { label:string; insert?:string; action?:'equals'|'clear'|'delete'|'shift'|'alpha'|'angle'|'mode'|'decimal'|'solve'|'calc'|'fraction'; kind?:'function'|'command'|'number'|'operator'|'equals'|'danger'; };
+type KeyDef = { label:string; insert?:string; action?:'equals'|'clear'|'delete'|'shift'|'alpha'|'angle'|'mode'|'decimal'|'solve'|'calc'|'fraction'|'calculus'|'matrix'; kind?:'function'|'command'|'number'|'operator'|'equals'|'danger'; };
 const DEFAULTS: Settings = { angle: 'DEG', theme: 'graphite' };
 const MODELS: Array<{id:ModelId;name:string;subtitle:string;description:string;badge:string}> = [
   {id:'basic300',name:'300 ES PLUS',subtitle:'Basic calculator',description:'Everyday arithmetic, fractions, percentages, roots and essential scientific functions.',badge:'BASIC'},
@@ -42,7 +42,7 @@ const BASIC_KEYS:KeyDef[][] = [
 ];
 const SCIENTIFIC_KEYS:KeyDef[][] = [
   [{label:'SHIFT',action:'shift',kind:'command'},{label:'ALPHA',action:'alpha',kind:'command'},{label:'MENU',action:'mode',kind:'command'},{label:'SETUP',action:'angle',kind:'command'},{label:'ON',action:'clear',kind:'danger'}],
-  [{label:'CALC',action:'calc',kind:'command'},{label:'∫dx',insert:'∫(',kind:'function'},{label:'d/dx',insert:'diff(',kind:'function'},{label:'√',insert:'sqrt(',kind:'function'},{label:'x²',insert:'^2',kind:'function'}],
+  [{label:'CALC',action:'calc',kind:'command'},{label:'∫dx',action:'calculus',kind:'function'},{label:'d/dx',action:'calculus',kind:'function'},{label:'√',insert:'sqrt(',kind:'function'},{label:'x²',insert:'^2',kind:'function'}],
   [{label:'x⁻¹',insert:'^(-1)',kind:'function'},{label:'xʸ',insert:'^',kind:'function'},{label:'log',insert:'log(',kind:'function'},{label:'ln',insert:'ln(',kind:'function'},{label:'nCr',insert:'nCr(',kind:'function'}],
   [{label:'nPr',insert:'nPr(',kind:'function'},{label:'(',insert:'(',kind:'function'},{label:')',insert:')',kind:'function'},{label:'sin',insert:'sin(',kind:'function'},{label:'cos',insert:'cos(',kind:'function'}],
   [{label:'tan',insert:'tan(',kind:'function'},{label:'(-)',insert:'−',kind:'function'},{label:'° ′ ″',insert:'°',kind:'function'},{label:'hyp',insert:'sinh(',kind:'function'},{label:'S⇔D',action:'fraction',kind:'command'}],
@@ -53,7 +53,7 @@ const SCIENTIFIC_KEYS:KeyDef[][] = [
 ];
 const ADVANCED_KEYS:KeyDef[][] = [
   [{label:'SHIFT',action:'shift',kind:'command'},{label:'ALPHA',action:'alpha',kind:'command'},{label:'MODE',action:'mode',kind:'command'},{label:'SETUP',action:'angle',kind:'command'},{label:'ON',action:'clear',kind:'danger'}],
-  [{label:'SOLVE',action:'solve',kind:'command'},{label:'∫dx',insert:'∫(',kind:'function'},{label:'d/dx',insert:'diff(',kind:'function'},{label:'MATRIX',insert:'[[',kind:'function'},{label:'VECTOR',insert:'[',kind:'function'}],
+  [{label:'SOLVE',action:'solve',kind:'command'},{label:'∫dx',insert:'∫(',kind:'function'},{label:'d/dx',insert:'diff(',kind:'function'},{label:'MATRIX',action:'matrix',kind:'function'},{label:'VECTOR',action:'matrix',kind:'function'}],
   [{label:'x²',insert:'^2',kind:'function'},{label:'^',insert:'^',kind:'function'},{label:'log',insert:'log(',kind:'function'},{label:'ln',insert:'ln(',kind:'function'},{label:'√',insert:'sqrt(',kind:'function'}],
   [{label:'sin',insert:'sin(',kind:'function'},{label:'cos',insert:'cos(',kind:'function'},{label:'tan',insert:'tan(',kind:'function'},{label:'(',insert:'(',kind:'function'},{label:')',insert:')',kind:'function'}],
   [{label:'7',insert:'7',kind:'number'},{label:'8',insert:'8',kind:'number'},{label:'9',insert:'9',kind:'number'},{label:'DEL',action:'delete',kind:'command'},{label:'AC',action:'clear',kind:'danger'}],
@@ -164,7 +164,7 @@ export default function App() {
     if(key.action==='alpha'){setAlpha(v=>!v);setShift(false);return;}
     if(key.action==='angle'){setSettings(s=>({...s,angle:s.angle==='DEG'?'RAD':s.angle==='RAD'?'GRAD':'DEG'}));return;}
     if(key.action==='mode'){setPage('tools');return;}
-    if(key.action==='solve'){setPage('solver');return;}
+    if(key.action==='solve'){setPage('solver');return;}\n    if(key.action==='calculus'){setPage('calculus');return;}\n    if(key.action==='matrix'){setPage('matrix');return;}
     if(key.action==='fraction'){
       if(result){const value=Number(result);if(Number.isFinite(value)){const [p,q]=rationalApproximation(value);setResult(q===1?String(p):p+'/'+q);}}
       else insertText('/');
@@ -208,18 +208,6 @@ export default function App() {
   const runRegression=()=>{
     try{setRegOutput(linearRegression(pairs.split(';').map(item=>item.split(',').map(Number) as [number,number])))}
     catch(e){setError(e instanceof Error?e.message:String(e));setRegOutput(null);}
-  };
-  const runTable=()=>{
-    try{
-      const start=Number(tableStart),step=Number(tableStep),end=Number(tableEnd);
-      if(!Number.isFinite(start)||!Number.isFinite(step)||!Number.isFinite(end)||step===0||Math.sign(end-start)!==Math.sign(step)&&end!==start) throw new Error('Check the start, step and end values.');
-      const count=Math.floor((end-start)/step)+1;if(count<1||count>100)throw new Error('The table must contain between 1 and 100 rows.');
-      const rows=[];for(let i=0;i<count;i++){const x=start+i*step;try{rows.push({x,y:formatResult(evaluateRaw(functionExpression,settings.angle,ans) instanceof Object?0:0)})}catch{rows.push({x,y:'—'})}}
-      const evaluated=rows.map(row=>{try{return {...row,y:formatResult((awaitNever()) as any)}}catch{return row}});
-      const resultRows=[] as Array<{x:number;y:string}>;
-      for(let i=0;i<count;i++){const x=start+i*step;try{const value=evaluateRaw(functionExpression,settings.angle,ans);const withX=(value as any);void withX;resultRows.push({x,y:formatResult(evaluateRaw(functionExpression.replace(/\bx\b/g,String(x)),settings.angle,ans))})}catch{resultRows.push({x,y:'Undefined'})}}
-      setTableRows(resultRows);
-    }catch(e){setCalcOutput(e instanceof Error?e.message:String(e));}
   };
   const handlePhoto=async(file?:File)=>{
     if(!file)return;
