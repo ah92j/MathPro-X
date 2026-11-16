@@ -288,10 +288,15 @@ export function tokenize(source: string, options: TokenizerOptions = {}): Token[
       continue;
     }
 
-    if ('+-*/^%!<>:=,'.includes(current) || current === argumentSeparator) {
+    if (current === argumentSeparator) {
       advance();
-      if (current === argumentSeparator) emit('comma', current, current, start);
-      else emit('operator', current, current, start);
+      emit(current === ',' ? 'comma' : 'semicolon', current, current, start);
+      continue;
+    }
+
+    if ('+-*/^%!<>:='.includes(current)) {
+      advance();
+      emit('operator', current, current, start);
       continue;
     }
 
