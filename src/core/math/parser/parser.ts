@@ -527,7 +527,15 @@ class Parser {
 }
 
 export function parse(source: string, options: ParserOptions = {}): ParseResult {
-  const mergedOptions: Required<ParserOptions> = { ...DEFAULT_PARSER_OPTIONS, ...options };
+  const decimalSeparator = options.decimalSeparator ?? DEFAULT_PARSER_OPTIONS.decimalSeparator;
+  const argumentSeparator = options.argumentSeparator ??
+    (decimalSeparator === ',' ? ';' : DEFAULT_PARSER_OPTIONS.argumentSeparator);
+  const mergedOptions: Required<ParserOptions> = {
+    ...DEFAULT_PARSER_OPTIONS,
+    ...options,
+    decimalSeparator,
+    argumentSeparator
+  };
   const tokens = tokenize(source, mergedOptions);
   return new Parser(tokens, mergedOptions).parse();
 }
