@@ -51,6 +51,7 @@ export interface MathEvaluatorOptions extends ParserOptions {
   readonly preAns?: MathValue | NumericInput;
   readonly random?: () => number;
   readonly maxIterations?: number;
+  readonly precision?: number;
 }
 
 export interface MathEvaluationResult {
