@@ -12,20 +12,13 @@ import { ELEMENTS } from './lib/elements';
 import { FORMULAS } from './lib/reference';
 import { readHistory, readSettings, saveHistory, saveSettings, type HistoryEntry } from './lib/storage';
 
-type ModelId = 'basic300'|'advanced115'|'scientific991'|'scientific991es'|'graph84';
-type Page = 'home'|'tools'|'calc'|'graph'|'solver'|'calculus'|'number'|'complex'|'stats'|'matrix'|'formulas'|'periodic'|'history'|'camera'|'converter'|'settings';
+type Page = 'tools'|'calc'|'graph'|'solver'|'calculus'|'number'|'complex'|'stats'|'matrix'|'formulas'|'periodic'|'history'|'camera'|'converter'|'settings';
 type Settings = { angle: AngleMode; theme: string; };
 type KeyDef = { label:string; insert?:string; action?:'equals'|'clear'|'delete'|'shift'|'alpha'|'angle'|'mode'|'decimal'|'solve'|'calc'|'fraction'|'calculus'|'matrix'; kind?:'function'|'command'|'number'|'operator'|'equals'|'danger'; };
 const DEFAULTS: Settings = { angle: 'DEG', theme: 'graphite' };
-const MODELS: Array<{id:ModelId;name:string;subtitle:string;description:string;badge:string}> = [
-  {id:'basic300',name:'300 ES PLUS',subtitle:'Basic calculator',description:'Everyday arithmetic, fractions, percentages, roots and essential scientific functions.',badge:'BASIC'},
-  {id:'advanced115',name:'115 ES PLUS',subtitle:'Advanced calculator',description:'Scientific functions, complex numbers, matrices, vectors and calculus shortcuts.',badge:'ADVANCED'},
-  {id:'scientific991es',name:'991 ES PLUS',subtitle:'Scientific calculator',description:'Classic scientific keypad with equation solving, statistics and table modes.',badge:'SCIENTIFIC'},
-  {id:'scientific991',name:'991 EX',subtitle:'Advanced scientific calculator',description:'Full scientific keypad, precision arithmetic, number theory and engineering functions.',badge:'FLAGSHIP'},
-  {id:'graph84',name:'84 PLUS',subtitle:'Graphing calculator',description:'Cartesian, polar, parametric and implicit graphing with trace-friendly controls.',badge:'GRAPHING'}
-];
 const TOOL_PAGES: Array<{id:Page;label:string;icon:string}> = [
   {id:'solver',label:'Equation solver',icon:'x='},{id:'calculus',label:'Calculus',icon:'∫'},
+  {id:'graph',label:'Function grapher',icon:'⌁'},
   {id:'matrix',label:'Matrix & vectors',icon:'▦'},{id:'complex',label:'Complex numbers',icon:'ℂ'},
   {id:'stats',label:'Statistics',icon:'σ'},{id:'number',label:'Number theory',icon:'ℕ'},
   {id:'formulas',label:'Formula library',icon:'π'},{id:'periodic',label:'Periodic table',icon:'⚛'},
@@ -96,8 +89,7 @@ const ES_KEYS:KeyDef[][] = [
 ];
 
 export default function App() {
-  const [page,setPage]=useState<Page>('home');
-  const [model,setModel]=useState<ModelId>('scientific991');
+  const [page,setPage]=useState<Page>('calc');
   const [settings,setSettings]=useState<Settings>(()=>readSettings(DEFAULTS));
   const [expression,setExpression]=useState('');
   const [result,setResult]=useState('');
@@ -160,13 +152,11 @@ export default function App() {
   useEffect(()=>saveHistory(history),[history]);
   useEffect(()=>{localStorage.setItem('mathpro.functions',JSON.stringify(savedFunctions))},[savedFunctions]);
   useEffect(()=>{if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>undefined)},[]);
-  const selectedModel=MODELS.find(item=>item.id===model)||MODELS[3];
   const selected = ELEMENTS.find(el=>el.atomicNumber===selectedElement) || ELEMENTS[0];
   const filteredFormulas=useMemo(()=>FORMULAS.filter(item=>
     (category==='All'||item.category===category) &&
     (item.title+' '+item.formula+' '+item.note).toLowerCase().includes(formulaSearch.toLowerCase())
   ),[category,formulaSearch]);
-  const keyRows=model==='basic300'?BASIC_KEYS:model==='advanced115'?ADVANCED_KEYS:model==='scientific991es'?ES_KEYS:SCIENTIFIC_KEYS;
 
   const calculate=(source=expression)=>{
     if(!source.trim()){setError('Enter an expression first.');return;}
@@ -209,10 +199,6 @@ export default function App() {
     if(text==='(-)')text='−';
     insertText(text);
     setShift(false);setAlpha(false);
-  };
-  const selectModel=(id:ModelId)=>{
-    setModel(id);setExpression('');setResult('');setError('');setShift(false);setAlpha(false);
-    setPage(id==='graph84'?'graph':'calc');
   };
   const runSolver=()=>{try{setSolutions(solveEquation(equation,variable))}catch(e){setSolutions([e instanceof Error?e.message:String(e)])}};
   const runCalculus=(kind:'diff'|'int'|'definite')=>{
@@ -263,7 +249,7 @@ export default function App() {
 
   return <main className={'app theme-'+settings.theme}>
     <header className="app-topbar">
-      <button className="brand-lockup" onClick={()=>setPage('home')}><span className="brand-symbol">M</span><span><b>MathPro <em>X</em></b><small>SCIENTIFIC SYSTEM</small></span></button>
+      <button className="brand-lockup" onClick={()=>setPage('calc')}><span className="brand-symbol">M</span><span><b>MathPro <em>X</em></b><small>SCIENTIFIC SYSTEM</small></span></button>
       <div className="topbar-actions">
         <button className="top-pill" onClick={()=>setSettings(s=>({...s,angle:s.angle==='DEG'?'RAD':s.angle==='RAD'?'GRAD':'DEG'}))}>{settings.angle}</button>
         <button className="top-icon" onClick={()=>setPage('history')} aria-label="History">↶</button>
@@ -271,31 +257,18 @@ export default function App() {
       </div>
     </header>
     <nav className="primary-nav">
-      <button className={page==='home'?'active':''} onClick={()=>setPage('home')}>CALCULATORS</button>
-      <button className={page==='calc'?'active':''} onClick={()=>setPage('calc')}>SCIENTIFIC</button>
-      <button className={page==='graph'?'active':''} onClick={()=>{setModel('graph84');setPage('graph')}}>GRAPH 84</button>
-      <button className={['solver','calculus','number','complex','stats','matrix','formulas','periodic','camera','tools'].includes(page)?'active':''} onClick={pagesToTools}>TOOLS</button>
+      <button className={page==='calc'?'active':''} onClick={()=>setPage('calc')}>CALCULATOR</button>
+      <button className={['tools','solver','calculus','number','complex','stats','matrix','formulas','periodic','camera','converter'].includes(page)?'active':''} onClick={()=>setPage('tools')}>FUNCTIONS & TOOLS</button>
+      <button className={page==='graph'?'active':''} onClick={()=>setPage('graph')}>GRAPH</button>
     </nav>
 
-    {page==='home'&&<section className="home-screen">
-      <div className="hero-copy"><span className="eyebrow">MULTI-MODE CALCULATOR</span><h1>One workspace.<br/><strong>Five calculator modes.</strong></h1><p>Choose the keypad and workflow you need. Switch models any time without losing your calculation history.</p></div>
-      <div className="model-grid">
-        {MODELS.map(item=><button className={'model-card model-'+item.id} key={item.id} onClick={()=>selectModel(item.id)}>
-          <span className="model-top"><small>{item.badge}</small><span>↗</span></span>
-          <span className="mini-device"><span className="mini-screen"><small>MATHPRO X</small><b>{item.id==='graph84'?'Y₁ = sin(X)':item.id==='basic300'?'123456789':item.id==='advanced115'?'a+bi  MATRIX':item.id==='scientific991es'?'sin(30)  0.5':'123456789 × 987'}</b></span><span className="mini-keys"><i/><i/><i/><i/><i/><i/><i/><i/><i/></span></span>
-          <b className="model-name">{item.name}</b><strong>{item.subtitle}</strong><span className="model-desc">{item.description}</span><span className="launch-model">OPEN CALCULATOR <b>→</b></span>
-        </button>)}
-      </div>
-      <div className="home-utilities"><div><span>TOOLS & REFERENCES</span><b>Beyond the keypad</b><p>Equation solving, calculus, matrices, statistics, number theory, formulas and periodic table.</p></div><button onClick={pagesToTools}>OPEN TOOLBOX →</button></div>
-    </section>}
-
-    {page==='calc'&&<section className={'calculator-stage model-stage-'+model}>
+    {page==='calc'&&<section className="calculator-stage">
       <div className="device-heading">
-        <div><span className="device-kicker">MATHPRO X / CALCULATOR MODE</span><h1>{selectedModel.name}</h1><p>{selectedModel.subtitle}</p></div>
-        <button className="model-switch" onClick={()=>setPage('home')}>CHANGE MODEL⌄</button>
+        <div><span className="device-kicker">MATHPRO X / ALL-IN-ONE SCIENTIFIC CALCULATOR</span><h1>Scientific Calculator</h1><p>Basic · Scientific · Algebra · Engineering · Graphing</p></div>
+        <button className="model-switch" onClick={()=>setPage('tools')}>FUNCTIONS ⌄</button>
       </div>
       <div className="physical-calculator">
-        <div className="calc-brand-row"><b>MathPro <em>X</em></b><span>SCIENTIFIC CALCULATOR</span><small>{selectedModel.name}</small></div>
+        <div className="calc-brand-row"><b>MathPro <em>X</em></b><span>ALL-IN-ONE SCIENTIFIC</span><small>DEG · RAD · GRAD</small></div>
         <section className="lcd-screen">
           <div className="lcd-status"><span>Math</span><span>{settings.angle}</span><span>{shift?'SHIFT':alpha?'ALPHA':'NORM'}</span><span>FIX 100</span></div>
           <textarea className="lcd-expression" rows={2} value={expression} onChange={e=>{setExpression(e.target.value);setResult('');setError('')}} onKeyDown={e=>{if(e.key==='Enter'){e.preventDefault();calculate()}if(e.key==='Escape'){setExpression('');setResult('');setError('')}}} placeholder="Enter calculation" aria-label="Expression input"/>
@@ -303,19 +276,19 @@ export default function App() {
           <div className="lcd-footer"><span>{result?'▶ RESULT':'▶ INPUT'}</span><span>{history.length} HISTORY</span></div>
         </section>
         <div className="physical-keypad">
-          {keyRows.map((row,rowIndex)=><div className={'key-row key-row-'+rowIndex} key={rowIndex}>
+          {SCIENTIFIC_KEYS.map((row,rowIndex)=><div className={'key-row key-row-'+rowIndex} key={rowIndex}>
             {row.map((key,index)=><button key={rowIndex+'-'+index} className={'calc-key key-'+(key.kind||'function')+(key.action==='shift'&&shift?' is-on':'')+(key.action==='alpha'&&alpha?' is-on':'')} onClick={()=>pressKey(key)}>{key.label}</button>)}
           </div>)}
         </div>
         <div className="calc-bottom-label"><span>MathPro X</span><span>100-DIGIT ENGINE · {settings.angle}</span></div>
       </div>
       <div className="calculator-footer-tools">
-        <button onClick={()=>setPage('history')}>↶ HISTORY</button><button onClick={()=>setPage('solver')}>x= SOLVER</button><button onClick={()=>setPage('calculus')}>∫ CALCULUS</button><button onClick={()=>setPage('settings')}>⚙ SETTINGS</button>
+        <button onClick={()=>setPage('tools')}>☷ ALL FUNCTIONS</button><button onClick={()=>setPage('graph')}>⌁ GRAPH</button><button onClick={()=>setPage('history')}>↶ HISTORY</button><button onClick={()=>setPage('settings')}>⚙ SETTINGS</button>
       </div>
       <p className="precision-note">100-digit precision is available for supported BigNumber operations. Results from numerical and symbolic tools have their own method limits.</p>
     </section>}
 
-    {page==='graph'&&<Panel title="84 PLUS · Graphing calculator" subtitle="Function · Polar · Parametric · Implicit">
+    {page==='graph'&&<Panel title="Function Grapher" subtitle="Cartesian · Polar · Parametric · Implicit · one workspace">
       <div className="graph-device">
         <div className="graph-lcd-head"><b>Y= EDITOR</b><span>84 PLUS / GRAPH MODE</span></div>
         <div className="segmented">{(['cartesian','polar','parametric','implicit'] as GraphMode[]).map(mode=><button key={mode} className={graphMode===mode?'selected':''} onClick={()=>setGraphMode(mode)}>{mode}</button>)}</div>
@@ -328,7 +301,7 @@ export default function App() {
       <p className="muted small">Graph output is sampled numerically. Steep asymptotes and discontinuities may need a smaller window range.</p>
     </Panel>}
 
-    {page==='tools'&&<section className="toolbox-screen"><div className="toolbox-head"><span className="eyebrow">MATHPRO X / TOOLBOX</span><h1>Engineering tools</h1><p>Choose a workspace. Each tool has its own inputs and results.</p></div><div className="toolbox-grid">{TOOL_PAGES.map(item=><button key={item.id} onClick={()=>setPage(item.id)}><b>{item.icon}</b><span>{item.label}</span><i>→</i></button>)}</div></section>}
+    {page==='tools'&&<section className="toolbox-screen"><div className="toolbox-head"><span className="eyebrow">MATHPRO X / FUNCTIONS</span><h1>All calculator functions</h1><p>Advanced operations, reference tools and graphing, all connected to the same calculator.</p></div><div className="toolbox-grid">{TOOL_PAGES.map(item=><button key={item.id} onClick={()=>setPage(item.id)}><b>{item.icon}</b><span>{item.label}</span><i>→</i></button>)}</div></section>}
 
     {page==='solver'&&<Panel title="Equation Solver" subtitle="Polynomial and supported symbolic equations">
       <Field label="Equation" value={equation} onChange={setEquation}/><Field label="Variable" value={variable} onChange={setVariable}/>
@@ -438,7 +411,7 @@ export default function App() {
       <p className="muted small">100-digit precision applies to supported BigNumber operations; other methods can use numerical approximations.</p>
     </Panel>}
 
-    <footer className="app-footer"><button onClick={()=>setPage('home')}>MATHPRO X</button><span>Development build · v0.2.0</span><span>{settings.angle}</span></footer>
+    <footer className="app-footer"><button onClick={()=>setPage('calc')}>MATHPRO X</button><span>Development build · v0.2.0</span><span>{settings.angle}</span></footer>
   </main>;
 }
 
