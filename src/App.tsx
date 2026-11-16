@@ -46,14 +46,6 @@ function convertUnits(value:number,category:string,from:string,to:string):number
   return value*units[from]/units[to];
 }
 
-const BASIC_KEYS:KeyDef[][] = [
-  [{label:'AC',action:'clear',kind:'danger'},{label:'DEL',action:'delete',kind:'command'},{label:'%',insert:'%',kind:'function'},{label:'÷',insert:'÷',kind:'operator'}],
-  [{label:'√',insert:'sqrt(',kind:'function'},{label:'x²',insert:'^2',kind:'function'},{label:'π',insert:'π',kind:'function'},{label:'×',insert:'×',kind:'operator'}],
-  [{label:'7',insert:'7',kind:'number'},{label:'8',insert:'8',kind:'number'},{label:'9',insert:'9',kind:'number'},{label:'−',insert:'−',kind:'operator'}],
-  [{label:'4',insert:'4',kind:'number'},{label:'5',insert:'5',kind:'number'},{label:'6',insert:'6',kind:'number'},{label:'+',insert:'+',kind:'operator'}],
-  [{label:'1',insert:'1',kind:'number'},{label:'2',insert:'2',kind:'number'},{label:'3',insert:'3',kind:'number'},{label:'=',action:'equals',kind:'equals'}],
-  [{label:'±',insert:'(-)',kind:'function'},{label:'0',insert:'0',kind:'number'},{label:'.',insert:'.',kind:'number'},{label:'Ans',insert:'Ans',kind:'function'}]
-];
 const SCIENTIFIC_KEYS:KeyDef[][] = [
   [{label:'SHIFT',action:'shift',kind:'command'},{label:'ALPHA',action:'alpha',kind:'command'},{label:'MENU',action:'mode',kind:'command'},{label:'SETUP',action:'angle',kind:'command'},{label:'ON',action:'clear',kind:'danger'}],
   [{label:'CALC',action:'calc',kind:'command'},{label:'∫dx',action:'calculus',kind:'function'},{label:'d/dx',action:'calculus',kind:'function'},{label:'√',insert:'sqrt(',kind:'function'},{label:'x²',insert:'^2',kind:'function'}],
@@ -65,29 +57,15 @@ const SCIENTIFIC_KEYS:KeyDef[][] = [
   [{label:'1',insert:'1',kind:'number'},{label:'2',insert:'2',kind:'number'},{label:'3',insert:'3',kind:'number'},{label:'+',insert:'+',kind:'operator'},{label:'−',insert:'−',kind:'operator'}],
   [{label:'0',insert:'0',kind:'number'},{label:'.',insert:'.',kind:'number'},{label:'π',insert:'π',kind:'function'},{label:'Ans',insert:'Ans',kind:'function'},{label:'=',action:'equals',kind:'equals'}]
 ];
-const ADVANCED_KEYS:KeyDef[][] = [
-  [{label:'SHIFT',action:'shift',kind:'command'},{label:'ALPHA',action:'alpha',kind:'command'},{label:'MODE',action:'mode',kind:'command'},{label:'SETUP',action:'angle',kind:'command'},{label:'ON',action:'clear',kind:'danger'}],
-  [{label:'SOLVE',action:'solve',kind:'command'},{label:'∫dx',insert:'∫(',kind:'function'},{label:'d/dx',insert:'diff(',kind:'function'},{label:'MATRIX',action:'matrix',kind:'function'},{label:'VECTOR',action:'matrix',kind:'function'}],
-  [{label:'x²',insert:'^2',kind:'function'},{label:'^',insert:'^',kind:'function'},{label:'log',insert:'log(',kind:'function'},{label:'ln',insert:'ln(',kind:'function'},{label:'√',insert:'sqrt(',kind:'function'}],
-  [{label:'sin',insert:'sin(',kind:'function'},{label:'cos',insert:'cos(',kind:'function'},{label:'tan',insert:'tan(',kind:'function'},{label:'(',insert:'(',kind:'function'},{label:')',insert:')',kind:'function'}],
-  [{label:'7',insert:'7',kind:'number'},{label:'8',insert:'8',kind:'number'},{label:'9',insert:'9',kind:'number'},{label:'DEL',action:'delete',kind:'command'},{label:'AC',action:'clear',kind:'danger'}],
-  [{label:'4',insert:'4',kind:'number'},{label:'5',insert:'5',kind:'number'},{label:'6',insert:'6',kind:'number'},{label:'×',insert:'×',kind:'operator'},{label:'÷',insert:'÷',kind:'operator'}],
-  [{label:'1',insert:'1',kind:'number'},{label:'2',insert:'2',kind:'number'},{label:'3',insert:'3',kind:'number'},{label:'+',insert:'+',kind:'operator'},{label:'−',insert:'−',kind:'operator'}],
-  [{label:'0',insert:'0',kind:'number'},{label:'.',insert:'.',kind:'number'},{label:'i',insert:'i',kind:'function'},{label:'Ans',insert:'Ans',kind:'function'},{label:'=',action:'equals',kind:'equals'}]
-];
-const ES_KEYS:KeyDef[][] = [
-  [{label:'SHIFT',action:'shift',kind:'command'},{label:'ALPHA',action:'alpha',kind:'command'},{label:'MODE',action:'mode',kind:'command'},{label:'ON',action:'clear',kind:'danger'}],
-  [{label:'CALC',action:'calc',kind:'command'},{label:'∫dx',insert:'∫(',kind:'function'},{label:'x⁻¹',insert:'^(-1)',kind:'function'},{label:'log',insert:'log(',kind:'function'}],
-  [{label:'√',insert:'sqrt(',kind:'function'},{label:'x²',insert:'^2',kind:'function'},{label:'^',insert:'^',kind:'function'},{label:'ln',insert:'ln(',kind:'function'}],
-  [{label:'(-)',insert:'−',kind:'function'},{label:'° ′ ″',insert:'°',kind:'function'},{label:'hyp',insert:'sinh(',kind:'function'},{label:'sin',insert:'sin(',kind:'function'}],
-  [{label:'cos',insert:'cos(',kind:'function'},{label:'tan',insert:'tan(',kind:'function'},{label:'RCL',insert:'Ans',kind:'command'},{label:'ENG',insert:'*10^',kind:'command'}],
-  [{label:'7',insert:'7',kind:'number'},{label:'8',insert:'8',kind:'number'},{label:'9',insert:'9',kind:'number'},{label:'DEL',action:'delete',kind:'command'}],
-  [{label:'4',insert:'4',kind:'number'},{label:'5',insert:'5',kind:'number'},{label:'6',insert:'6',kind:'number'},{label:'×',insert:'×',kind:'operator'}],
-  [{label:'1',insert:'1',kind:'number'},{label:'2',insert:'2',kind:'number'},{label:'3',insert:'3',kind:'number'},{label:'÷',insert:'÷',kind:'operator'}],
-  [{label:'0',insert:'0',kind:'number'},{label:'.',insert:'.',kind:'number'},{label:'EXP',insert:'*10^',kind:'command'},{label:'Ans',insert:'Ans',kind:'function'}],
-  [{label:'(',insert:'(',kind:'function'},{label:')',insert:')',kind:'function'},{label:'AC',action:'clear',kind:'danger'},{label:'=',action:'equals',kind:'equals'}]
-];
-
+const KEY_HINTS:Record<string,string> = {
+  SHIFT:'2nd',ALPHA:'A–Z',MENU:'MODE',SETUP:'DRG',ON:'CLR',
+  CALC:'SOLVE', '∫dx':'∫', 'd/dx':'d/dx', '√':'³√x', 'x²':'√x',
+  'x⁻¹':'1/x', 'xʸ':'^', log:'10ˣ', ln:'eˣ', nCr:'nPr', nPr:'nCr',
+  sin:'sin⁻¹',cos:'cos⁻¹',tan:'tan⁻¹','(-)':'Ran#','° ′ ″':'DMS',
+  hyp:'sinh', 'S⇔D':'a b/c', '7':'n!', '8':'nCr', '9':'nPr',
+  '4':'GCD', '5':'LCM', '6':'ABS', '1':'RAN#', '2':'π', '3':'e',
+  '0':'ENG', '.':'EXP', Ans:'LAST'
+};
 export default function App() {
   const [page,setPage]=useState<Page>('calc');
   const [settings,setSettings]=useState<Settings>(()=>readSettings(DEFAULTS));
@@ -265,7 +243,7 @@ export default function App() {
     {page==='calc'&&<section className="calculator-stage">
       <div className="device-heading">
         <div><span className="device-kicker">MATHPRO X / ALL-IN-ONE SCIENTIFIC CALCULATOR</span><h1>Scientific Calculator</h1><p>Basic · Scientific · Algebra · Engineering · Graphing</p></div>
-        <button className="model-switch" onClick={()=>setPage('tools')}>FUNCTIONS ⌄</button>
+        <button className="function-menu-button" onClick={()=>setPage('tools')}>FUNCTIONS ⌄</button>
       </div>
       <div className="physical-calculator">
         <div className="calc-brand-row"><b>MathPro <em>X</em></b><span>ALL-IN-ONE SCIENTIFIC</span><small>DEG · RAD · GRAD</small></div>
@@ -277,7 +255,9 @@ export default function App() {
         </section>
         <div className="physical-keypad">
           {SCIENTIFIC_KEYS.map((row,rowIndex)=><div className={'key-row key-row-'+rowIndex} key={rowIndex}>
-            {row.map((key,index)=><button key={rowIndex+'-'+index} className={'calc-key key-'+(key.kind||'function')+(key.action==='shift'&&shift?' is-on':'')+(key.action==='alpha'&&alpha?' is-on':'')} onClick={()=>pressKey(key)}>{key.label}</button>)}
+            {row.map((key,index)=><button key={rowIndex+'-'+index} aria-label={key.label} className={'calc-key key-'+(key.kind||'function')+(key.action==='shift'?' key-shift':'')+(key.action==='alpha'?' key-alpha':'')+(key.action==='mode'?' key-menu':'')+(key.action==='shift'&&shift?' is-on':'')+(key.action==='alpha'&&alpha?' is-on':'')} onClick={()=>pressKey(key)}>
+              <small className="key-hint">{KEY_HINTS[key.label]||'\u00a0'}</small><span className="key-label">{key.label}</span>
+            </button>)}
           </div>)}
         </div>
         <div className="calc-bottom-label"><span>MathPro X</span><span>100-DIGIT ENGINE · {settings.angle}</span></div>
