@@ -38,7 +38,7 @@ const UNIT_TABLES:Record<string,Record<string,number>> = {
   Mass:{mg:0.001,g:1,kg:1000,t:1000000,oz:28.349523125,lb:453.59237},
   Time:{ms:0.001,s:1,min:60,h:3600,day:86400},
   Area:{'mm²':0.000001,'cm²':0.0001,'m²':1,'km²':1000000,ha:10000,acre:4046.8564224},
-  Volume:{mL:0.001,L:1,'m³':1000,gal:3.785411784,ft³:28.316846592},
+  Volume:{mL:0.001,L:1,'m³':1000,gal:3.785411784,'ft³':28.316846592},
   Speed:{'m/s':1,'km/h':1/3.6,mph:0.44704,knot:0.514444444},
   Data:{bit:1,byte:8,KB:8000,MB:8000000,GB:8000000000}
 };
@@ -52,7 +52,8 @@ function convertUnits(value:number,category:string,from:string,to:string):number
   if(!units||units[from]===undefined||units[to]===undefined) throw new Error('Choose compatible units.');
   return value*units[from]/units[to];
 }
-\nconst BASIC_KEYS:KeyDef[][] = [
+
+const BASIC_KEYS:KeyDef[][] = [
   [{label:'AC',action:'clear',kind:'danger'},{label:'DEL',action:'delete',kind:'command'},{label:'%',insert:'%',kind:'function'},{label:'÷',insert:'÷',kind:'operator'}],
   [{label:'√',insert:'sqrt(',kind:'function'},{label:'x²',insert:'^2',kind:'function'},{label:'π',insert:'π',kind:'function'},{label:'×',insert:'×',kind:'operator'}],
   [{label:'7',insert:'7',kind:'number'},{label:'8',insert:'8',kind:'number'},{label:'9',insert:'9',kind:'number'},{label:'−',insert:'−',kind:'operator'}],
