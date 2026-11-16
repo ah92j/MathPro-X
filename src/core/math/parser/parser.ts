@@ -405,17 +405,24 @@ class Parser {
     }
 
     const closing = this.expect('rightBracket', 'Expected "]" to close the array');
-    if (rows.some(row => row.length === 0)) {
+    let normalizedRows = rows;
+
+    if (rows.length === 1 && rows[0].length > 0 &&
+        rows[0].every(entry => entry.type === 'ArrayExpression')) {
+      normalizedRows = (rows[0] as ArrayExpressionNode[]).flatMap(entry => entry.rows);
+    }
+
+    if (normalizedRows.some(row => row.length === 0)) {
       throw new MathParserError('Matrix rows cannot be empty', closing.span);
     }
-    const width = rows[0]?.length ?? 0;
-    if (rows.some(row => row.length !== width)) {
+    const width = normalizedRows[0]?.length ?? 0;
+    if (normalizedRows.some(row => row.length !== width)) {
       throw new MathParserError('All matrix rows must have the same number of entries', opening.span);
     }
 
     return {
       type: 'ArrayExpression',
-      rows,
+      rows: normalizedRows,
       span: mergeSpans(opening.span, closing.span)
     };
   }
