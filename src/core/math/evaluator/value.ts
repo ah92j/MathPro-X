@@ -1,13 +1,68 @@
 import { all, create } from 'mathjs';
 import type { Decimal } from 'decimal.js';
 
-export const numericMath = create(all, {
+const mathInstance = create(all, {
   number: 'BigNumber',
   precision: 100,
   relTol: 1e-90,
   absTol: 1e-95,
   predictable: false
 });
+
+type ScalarOperand = Decimal | number | bigint | string;
+type ScalarFormatOptions = {
+  precision?: number;
+  lowerExp?: number;
+  upperExp?: number;
+  notation?: 'auto' | 'fixed' | 'exponential' | 'engineering';
+};
+
+export interface ScalarMathAdapter {
+  bignumber(value: ScalarOperand): Decimal;
+  add(left: ScalarOperand, right: ScalarOperand): Decimal;
+  subtract(left: ScalarOperand, right: ScalarOperand): Decimal;
+  multiply(left: ScalarOperand, right: ScalarOperand): Decimal;
+  divide(left: ScalarOperand, right: ScalarOperand): Decimal;
+  pow(left: ScalarOperand, right: ScalarOperand): Decimal;
+  sqrt(value: ScalarOperand): Decimal;
+  cbrt(value: ScalarOperand): Decimal;
+  abs(value: ScalarOperand): Decimal;
+  unaryMinus(value: ScalarOperand): Decimal;
+  sin(value: ScalarOperand): Decimal;
+  cos(value: ScalarOperand): Decimal;
+  tan(value: ScalarOperand): Decimal;
+  asin(value: ScalarOperand): Decimal;
+  acos(value: ScalarOperand): Decimal;
+  atan(value: ScalarOperand): Decimal;
+  atan2(y: ScalarOperand, x: ScalarOperand): Decimal;
+  sinh(value: ScalarOperand): Decimal;
+  cosh(value: ScalarOperand): Decimal;
+  tanh(value: ScalarOperand): Decimal;
+  asinh(value: ScalarOperand): Decimal;
+  acosh(value: ScalarOperand): Decimal;
+  atanh(value: ScalarOperand): Decimal;
+  exp(value: ScalarOperand): Decimal;
+  log(value: ScalarOperand): Decimal;
+  log10(value: ScalarOperand): Decimal;
+  floor(value: ScalarOperand): Decimal;
+  ceil(value: ScalarOperand): Decimal;
+  round(value: ScalarOperand): Decimal;
+  fix(value: ScalarOperand): Decimal;
+  sign(value: ScalarOperand): Decimal;
+  hypot(left: ScalarOperand, right: ScalarOperand): Decimal;
+  max(...values: ScalarOperand[]): Decimal;
+  min(...values: ScalarOperand[]): Decimal;
+  mod(left: ScalarOperand, right: ScalarOperand): Decimal;
+  smaller(left: ScalarOperand, right: ScalarOperand): boolean;
+  smallerEq(left: ScalarOperand, right: ScalarOperand): boolean;
+  larger(left: ScalarOperand, right: ScalarOperand): boolean;
+  largerEq(left: ScalarOperand, right: ScalarOperand): boolean;
+  equal(left: ScalarOperand, right: ScalarOperand): boolean;
+  compare(left: ScalarOperand, right: ScalarOperand): number;
+  format(value: Decimal, options?: ScalarFormatOptions): string;
+}
+
+export const numericMath = mathInstance as unknown as ScalarMathAdapter;
 
 export type DecimalValue = Decimal;
 
