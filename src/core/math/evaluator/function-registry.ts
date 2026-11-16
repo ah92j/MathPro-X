@@ -463,12 +463,20 @@ const FUNCTIONS: Readonly<Record<string, MathFunctionDefinition>> = {
     real(args[0], 'hypot', 0),
     real(args[1], 'hypot', 1)
   ))),
-  min: definition(1, 1000, args => args
-    .map(value => real(value, 'min', 0))
-    .reduce<DecimalValue>((minimum, value) => numericMath.smaller(value, minimum) ? value : minimum)),
-  max: definition(1, 1000, args => args
-    .map(value => real(value, 'max', 0))
-    .reduce<DecimalValue>((maximum, value) => numericMath.larger(value, maximum) ? value : maximum)),
+  min: definition(1, 1000, args => {
+    const values = args.map(value => real(value, 'min', 0));
+    return values.slice(1).reduce<DecimalValue>(
+      (minimum, value) => numericMath.smaller(value, minimum) ? value : minimum,
+      values[0]
+    );
+  }),
+  max: definition(1, 1000, args => {
+    const values = args.map(value => real(value, 'max', 0));
+    return values.slice(1).reduce<DecimalValue>(
+      (maximum, value) => numericMath.larger(value, maximum) ? value : maximum,
+      values[0]
+    );
+  }),
   mean: definition(1, 1000, args => {
     const values = args.map(value => real(value, 'mean', 0));
     const total = values.reduce<DecimalValue>((sum, value) => numericMath.add(sum, value), decimal(0));
