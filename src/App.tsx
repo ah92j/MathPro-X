@@ -371,7 +371,7 @@ export default function App() {
       <div className="result-grid"><div className="stat-tile"><span>GCD(84,30)</span><b>{gcd(84,30)}</b></div><div className="stat-tile"><span>LCM(84,30)</span><b>{lcm(84,30)}</b></div></div>
       <h3>Base conversion</h3><Field label="Input number (fractions supported)" value={baseValue} onChange={setBaseValue}/>
       <div className="segmented">{([2,8,10,16] as SupportedBase[]).map(base=><button key={base} className={sourceBase===base?'selected':''} onClick={()=>setSourceBase(base)}>BASE {base}</button>)}</div>
-      <button onClick={runBase}>CONVERT BASES</button>{baseOutput&&<Output>Binary: {baseOutput.binary}{'\n'}Octal: {baseOutput.octal}{'\n'}Decimal: {baseOutput.decimal}{'\n'}Hex: {baseOutput.hexadecimal}</Output>}
+      <button onClick={runBase}>CONVERT BASES</button>{baseOutput&&<Output>Binary: {baseOutput.binary}{'\n'}Octal: {baseOutput.octal}{'\n'}Decimal: {baseOutput.decimal}{'\n'}Hex: {baseOutput.hexadecimal}{'\n'}{baseOutput.isExact?'Exact conversion; repeating cycles are shown in parentheses.':'Expansion truncated at the configured fractional digit limit.'}</Output>}
       <h3>Permutations & combinations</h3><div className="field-grid two"><Field label="n" value={n} onChange={setN}/><Field label="r" value={r} onChange={setR}/></div>
       <button onClick={runCombinations}>CALCULATE nPr / nCr</button>{combOutput&&<Output>nPr = {combOutput.permutations}{'\n'}nCr = {combOutput.combinations}{'\n'}n! = {combOutput.factorial}</Output>}
     </Panel>}
