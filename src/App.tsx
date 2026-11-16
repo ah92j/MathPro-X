@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import GraphCanvas, { type GraphMode } from './components/GraphCanvas';
 import {
@@ -14,7 +14,7 @@ import { readHistory, readSettings, saveHistory, saveSettings, type HistoryEntry
 
 type Page = 'tools'|'calc'|'graph'|'solver'|'calculus'|'number'|'complex'|'stats'|'matrix'|'formulas'|'periodic'|'history'|'camera'|'converter'|'settings';
 type Settings = { angle: AngleMode; theme: string; };
-type KeyDef = { label:string; insert?:string; action?:'equals'|'clear'|'delete'|'shift'|'alpha'|'angle'|'mode'|'decimal'|'solve'|'calc'|'fraction'|'calculus'|'matrix'; kind?:'function'|'command'|'number'|'operator'|'equals'|'danger'; };
+type KeyDef = { label:string; insert?:string; action?:'equals'|'clear'|'delete'|'shift'|'alpha'|'angle'|'mode'|'decimal'|'solve'|'calc'|'fraction'|'calculus'|'matrix'|'memoryAdd'|'memoryRecall'; kind?:'function'|'command'|'number'|'operator'|'equals'|'danger'; };
 const DEFAULTS: Settings = { angle: 'DEG', theme: 'graphite' };
 const TOOL_PAGES: Array<{id:Page;label:string;icon:string}> = [
   {id:'solver',label:'Equation solver',icon:'x='},{id:'calculus',label:'Calculus',icon:'∫'},
@@ -46,25 +46,64 @@ function convertUnits(value:number,category:string,from:string,to:string):number
   return value*units[from]/units[to];
 }
 
-const SCIENTIFIC_KEYS:KeyDef[][] = [
-  [{label:'SHIFT',action:'shift',kind:'command'},{label:'ALPHA',action:'alpha',kind:'command'},{label:'MENU',action:'mode',kind:'command'},{label:'SETUP',action:'angle',kind:'command'},{label:'ON',action:'clear',kind:'danger'}],
-  [{label:'CALC',action:'calc',kind:'command'},{label:'∫dx',action:'calculus',kind:'function'},{label:'d/dx',action:'calculus',kind:'function'},{label:'√',insert:'sqrt(',kind:'function'},{label:'x²',insert:'^2',kind:'function'}],
-  [{label:'x⁻¹',insert:'^(-1)',kind:'function'},{label:'xʸ',insert:'^',kind:'function'},{label:'log',insert:'log(',kind:'function'},{label:'ln',insert:'ln(',kind:'function'},{label:'nCr',insert:'nCr(',kind:'function'}],
-  [{label:'nPr',insert:'nPr(',kind:'function'},{label:'(',insert:'(',kind:'function'},{label:')',insert:')',kind:'function'},{label:'sin',insert:'sin(',kind:'function'},{label:'cos',insert:'cos(',kind:'function'}],
-  [{label:'tan',insert:'tan(',kind:'function'},{label:'(-)',insert:'−',kind:'function'},{label:'° ′ ″',insert:'°',kind:'function'},{label:'hyp',insert:'sinh(',kind:'function'},{label:'S⇔D',action:'fraction',kind:'command'}],
-  [{label:'7',insert:'7',kind:'number'},{label:'8',insert:'8',kind:'number'},{label:'9',insert:'9',kind:'number'},{label:'DEL',action:'delete',kind:'command'},{label:'AC',action:'clear',kind:'danger'}],
-  [{label:'4',insert:'4',kind:'number'},{label:'5',insert:'5',kind:'number'},{label:'6',insert:'6',kind:'number'},{label:'×',insert:'×',kind:'operator'},{label:'÷',insert:'÷',kind:'operator'}],
-  [{label:'1',insert:'1',kind:'number'},{label:'2',insert:'2',kind:'number'},{label:'3',insert:'3',kind:'number'},{label:'+',insert:'+',kind:'operator'},{label:'−',insert:'−',kind:'operator'}],
-  [{label:'0',insert:'0',kind:'number'},{label:'.',insert:'.',kind:'number'},{label:'π',insert:'π',kind:'function'},{label:'Ans',insert:'Ans',kind:'function'},{label:'=',action:'equals',kind:'equals'}]
+const UPPER_LEFT_KEYS:KeyDef[] = [
+  {label:'SHIFT',action:'shift',kind:'command'},{label:'ALPHA',action:'alpha',kind:'command'},
+  {label:'CALC',action:'calc',kind:'command'},{label:'∫dx',action:'calculus',kind:'function'}
+];
+const UPPER_RIGHT_KEYS:KeyDef[] = [
+  {label:'MODE',action:'mode',kind:'command'},{label:'2nd',action:'shift',kind:'command'},
+  {label:'x⁻¹',insert:'^(-1)',kind:'function'},{label:'Logₓy',insert:'log(',kind:'function'}
+];
+const SCIENTIFIC_FUNCTION_KEYS:KeyDef[][] = [
+  [
+    {label:'x/y',insert:'/',kind:'function'},{label:'√x',insert:'sqrt(',kind:'function'},
+    {label:'x²',insert:'^2',kind:'function'},{label:'xʸ',insert:'^',kind:'function'},
+    {label:'Log',insert:'log(',kind:'function'},{label:'Ln',insert:'ln(',kind:'function'}
+  ],
+  [
+    {label:'(−)',insert:'−',kind:'function'},{label:'° ′ ″',insert:'°',kind:'function'},
+    {label:'hyp',insert:'sinh(',kind:'function'},{label:'Sin',insert:'sin(',kind:'function'},
+    {label:'Cos',insert:'cos(',kind:'function'},{label:'Tan',insert:'tan(',kind:'function'}
+  ],
+  [
+    {label:'RCL',action:'memoryRecall',kind:'command'},{label:'ENG',insert:'*10^',kind:'command'},
+    {label:'(',insert:'(',kind:'function'},{label:')',insert:')',kind:'function'},
+    {label:'S⇔D',action:'fraction',kind:'command'},{label:'M+',action:'memoryAdd',kind:'command'}
+  ]
+];
+const NUMBER_KEYS:KeyDef[][] = [
+  [
+    {label:'7',insert:'7',kind:'number'},{label:'8',insert:'8',kind:'number'},
+    {label:'9',insert:'9',kind:'number'},{label:'DEL',action:'delete',kind:'command'},
+    {label:'AC',action:'clear',kind:'danger'}
+  ],
+  [
+    {label:'4',insert:'4',kind:'number'},{label:'5',insert:'5',kind:'number'},
+    {label:'6',insert:'6',kind:'number'},{label:'×',insert:'×',kind:'operator'},
+    {label:'÷',insert:'÷',kind:'operator'}
+  ],
+  [
+    {label:'1',insert:'1',kind:'number'},{label:'2',insert:'2',kind:'number'},
+    {label:'3',insert:'3',kind:'number'},{label:'+',insert:'+',kind:'operator'},
+    {label:'−',insert:'−',kind:'operator'}
+  ],
+  [
+    {label:'0',insert:'0',kind:'number'},{label:'.',insert:'.',kind:'number'},
+    {label:'Exp',insert:'*10^',kind:'command'},{label:'Ans',insert:'Ans',kind:'function'},
+    {label:'=',action:'equals',kind:'equals'}
+  ]
 ];
 const KEY_HINTS:Record<string,string> = {
-  SHIFT:'2nd',ALPHA:'A–Z',MENU:'MODE',SETUP:'DRG',ON:'CLR',
-  CALC:'SOLVE', '∫dx':'∫', 'd/dx':'d/dx', '√':'³√x', 'x²':'√x',
-  'x⁻¹':'1/x', 'xʸ':'^', log:'10ˣ', ln:'eˣ', nCr:'nPr', nPr:'nCr',
-  sin:'sin⁻¹',cos:'cos⁻¹',tan:'tan⁻¹','(-)':'Ran#','° ′ ″':'DMS',
-  hyp:'sinh', 'S⇔D':'a b/c', '7':'n!', '8':'nCr', '9':'nPr',
-  '4':'GCD', '5':'LCM', '6':'ABS', '1':'RAN#', '2':'π', '3':'e',
-  '0':'ENG', '.':'EXP', Ans:'LAST'
+  SHIFT:'SOLVE',ALPHA:'=',CALC:'d/dx', '∫dx':'∫',
+  MODE:'x!  ><  =', '2nd':'Σ  Π', 'x⁻¹':'x!', 'Logₓy':'logₓy',
+  'x/y':'xʸ/y', '√x':'³√x  mod', 'x²':'x³', 'xʸ':'ⁿ√y',
+  Log:'10ˣ', Ln:'eˣ', '(−)':'A', '° ′ ″':'DMS', hyp:'Cot',
+  Sin:'Sin⁻¹', Cos:'Cos⁻¹', Tan:'Tan⁻¹',
+  RCL:'STO  CLR',ENG:'i  Cot', '(': '%', ')':'x', 'S⇔D':'a b/c', 'M+':'M−',
+  '7':'MATRIX', '8':'VECTOR', '9':'FUNC HELP', DEL:'nPr  GCD', AC:'nCr  LCM',
+  '4':'STAT', '5':'CMPLX', '6':'DISTR', '×':'Pol  Ceil', '÷':'Rec  Floor',
+  '1':'COPY  PASTE', '2':'Ran#  RanInt', '3':'π  e', '+':'PreAns', '−':'History',
+  '0':'ENG', '.':'EXP', Exp:'×10ⁿ', Ans:'LAST', '=':'EXE'
 };
 export default function App() {
   const [page,setPage]=useState<Page>('calc');
@@ -75,6 +114,8 @@ export default function App() {
   const [ans,setAns]=useState<unknown>(0);
   const [shift,setShift]=useState(false);
   const [alpha,setAlpha]=useState(false);
+  const [memory,setMemory]=useState(0);
+  const expressionRef=useRef<HTMLTextAreaElement|null>(null);
   const [history,setHistory]=useState<HistoryEntry[]>(()=>readHistory());
   const [graphMode,setGraphMode]=useState<GraphMode>('cartesian');
   const [graphExpr,setGraphExpr]=useState('sin(x)');
@@ -151,6 +192,8 @@ export default function App() {
     setResult('');setError('');
   };
   const pressKey=(key:KeyDef)=>{
+    if(key.action==='memoryAdd'){const value=Number(result||ans);if(Number.isFinite(value))setMemory(v=>v+value);return;}
+    if(key.action==='memoryRecall'){insertText(String(memory));return;}
     if(key.action==='equals'||key.action==='calc'){calculate();setShift(false);setAlpha(false);return;}
     if(key.action==='clear'){setExpression('');setResult('');setError('');setShift(false);setAlpha(false);return;}
     if(key.action==='delete'){setExpression(v=>v.slice(0,-1));setResult('');setError('');return;}
@@ -168,10 +211,10 @@ export default function App() {
     }
     let text=key.insert??key.label;
     if(shift){
-      const shifted:Record<string,string>={'sin':'asin(','cos':'acos(','tan':'atan(','log':'10^(','ln':'e^','x²':'sqrt(','√':'^2','nCr':'nPr('};
+      const shifted:Record<string,string>={'Sin':'asin(','Cos':'acos(','Tan':'atan(','Log':'10^(','Ln':'e^','x²':'sqrt(','√x':'cbrt(','xʸ':'nthRoot(','nCr':'nPr(','7':'!','8':'nCr(','9':'nPr('};
       text=shifted[key.label]??text;
     }else if(alpha){
-      const alphaMap:Record<string,string>={'sin':'A','cos':'B','tan':'C','7':'x','8':'y','9':'z'};
+      const alphaMap:Record<string,string>={'Sin':'A','Cos':'B','Tan':'C','7':'x','8':'y','9':'z','4':'M','5':'X','6':'Y'};
       text=alphaMap[key.label]??text;
     }
     if(text==='(-)')text='−';
@@ -226,48 +269,72 @@ export default function App() {
   const pagesToTools=()=>setPage('tools');
 
   return <main className={'app theme-'+settings.theme}>
-    <header className="app-topbar">
-      <button className="brand-lockup" onClick={()=>setPage('calc')}><span className="brand-symbol">M</span><span><b>MathPro <em>X</em></b><small>SCIENTIFIC SYSTEM</small></span></button>
-      <div className="topbar-actions">
-        <button className="top-pill" onClick={()=>setSettings(s=>({...s,angle:s.angle==='DEG'?'RAD':s.angle==='RAD'?'GRAD':'DEG'}))}>{settings.angle}</button>
-        <button className="top-icon" onClick={()=>setPage('history')} aria-label="History">↶</button>
-        <button className="top-icon" onClick={()=>setPage('settings')} aria-label="Settings">⚙</button>
-      </div>
-    </header>
-    <nav className="primary-nav">
-      <button className={page==='calc'?'active':''} onClick={()=>setPage('calc')}>CALCULATOR</button>
-      <button className={['tools','solver','calculus','number','complex','stats','matrix','formulas','periodic','camera','converter'].includes(page)?'active':''} onClick={()=>setPage('tools')}>FUNCTIONS & TOOLS</button>
-      <button className={page==='graph'?'active':''} onClick={()=>setPage('graph')}>GRAPH</button>
-    </nav>
+    {page!=='calc'&&<>
+      <header className="app-topbar">
+        <button className="brand-lockup" onClick={()=>setPage('calc')}><span className="brand-symbol">M</span><span><b>MathPro <em>X</em></b><small>SCIENTIFIC SYSTEM</small></span></button>
+        <div className="topbar-actions">
+          <button className="top-pill" onClick={()=>setSettings(s=>({...s,angle:s.angle==='DEG'?'RAD':s.angle==='RAD'?'GRAD':'DEG'}))}>{settings.angle}</button>
+          <button className="top-icon" onClick={()=>setPage('history')} aria-label="History">↶</button>
+          <button className="top-icon" onClick={()=>setPage('settings')} aria-label="Settings">⚙</button>
+        </div>
+      </header>
+      <nav className="primary-nav">
+        <button className={page==='calc'?'active':''} onClick={()=>setPage('calc')}>CALCULATOR</button>
+        <button className={['tools','solver','calculus','number','complex','stats','matrix','formulas','periodic','camera','converter'].includes(page)?'active':''} onClick={()=>setPage('tools')}>FUNCTIONS & TOOLS</button>
+        <button className={page==='graph'?'active':''} onClick={()=>setPage('graph')}>GRAPH</button>
+      </nav>
+    </>}
 
-    {page==='calc'&&<section className="calculator-stage">
-      <div className="device-heading">
-        <div><span className="device-kicker">MATHPRO X / ALL-IN-ONE SCIENTIFIC CALCULATOR</span><h1>Scientific Calculator</h1><p>Basic · Scientific · Algebra · Engineering · Graphing</p></div>
-        <button className="function-menu-button" onClick={()=>setPage('tools')}>FUNCTIONS ⌄</button>
+
+    {page==='calc'&&<section className="calculator-stage reference-calculator">
+      <div className="reference-status">
+        <span className={shift?'status-on':''}>S</span><span className={alpha?'status-on':''}>A</span>
+        <span className={memory!==0?'status-on':''}>STO</span><span>RCL</span><span>NORM</span><span>−11</span><span>MATH</span><span>DECI</span>
       </div>
-      <div className="physical-calculator">
-        <div className="calc-brand-row"><b>MathPro <em>X</em></b><span>ALL-IN-ONE SCIENTIFIC</span><small>DEG · RAD · GRAD</small></div>
-        <section className="lcd-screen">
-          <div className="lcd-status"><span>Math</span><span>{settings.angle}</span><span>{shift?'SHIFT':alpha?'ALPHA':'NORM'}</span><span>FIX 100</span></div>
-          <textarea className="lcd-expression" rows={2} value={expression} onChange={e=>{setExpression(e.target.value);setResult('');setError('')}} onKeyDown={e=>{if(e.key==='Enter'){e.preventDefault();calculate()}if(e.key==='Escape'){setExpression('');setResult('');setError('')}}} placeholder="Enter calculation" aria-label="Expression input"/>
-          <div className="lcd-answer"><span className="lcd-error">{error}</span><strong>{result||' '}</strong></div>
-          <div className="lcd-footer"><span>{result?'▶ RESULT':'▶ INPUT'}</span><span>{history.length} HISTORY</span></div>
-        </section>
-        <div className="physical-keypad">
-          {SCIENTIFIC_KEYS.map((row,rowIndex)=><div className={'key-row key-row-'+rowIndex} key={rowIndex}>
-            {row.map((key,index)=><button key={rowIndex+'-'+index} aria-label={key.label} className={'calc-key key-'+(key.kind||'function')+(key.action==='shift'?' key-shift':'')+(key.action==='alpha'?' key-alpha':'')+(key.action==='mode'?' key-menu':'')+(key.action==='shift'&&shift?' is-on':'')+(key.action==='alpha'&&alpha?' is-on':'')} onClick={()=>pressKey(key)}>
-              <small className="key-hint">{KEY_HINTS[key.label]||'\u00a0'}</small><span className="key-label">{key.label}</span>
-            </button>)}
-          </div>)}
+      <section className="reference-display">
+        <span className="display-cursor" />
+        <button className="display-menu" onClick={()=>setPage('settings')} aria-label="Display options">⋮</button>
+        <textarea ref={expressionRef} className="lcd-expression" rows={4} value={expression} onChange={e=>{setExpression(e.target.value);setResult('');setError('')}} onKeyDown={e=>{if(e.key==='Enter'){e.preventDefault();calculate()}if(e.key==='Escape'){setExpression('');setResult('');setError('')}}} placeholder="" aria-label="Expression input"/>
+        <div className="lcd-answer"><span className="lcd-error">{error}</span><strong>{result||' '}</strong></div>
+      </section>
+      <div className="calculator-toolbar">
+        <button aria-label="All functions" onClick={()=>setPage('tools')}>☰</button>
+        <button className="toolbar-pro" onClick={()=>setPage('tools')}><span>◇</span> PRO</button>
+        <button aria-label="Themes" onClick={()=>setSettings(v=>({...v,theme:v.theme==='graphite'?'midnight':v.theme==='midnight'?'violet':v.theme==='violet'?'casio-green':'graphite'}))}>◉</button>
+        <button aria-label="Statistics" onClick={()=>setPage('stats')}>Σ</button>
+        <button aria-label="Settings" onClick={()=>setPage('settings')}>⚙</button>
+        <button aria-label="Change sign" onClick={()=>insertText('−')}>±</button>
+        <button aria-label="Camera input" onClick={()=>setPage('camera')}>▣</button>
+        <button className="toolbar-angle" onClick={()=>setSettings(v=>({...v,angle:v.angle==='DEG'?'RAD':v.angle==='RAD'?'GRAD':'DEG'}))}>{settings.angle}</button>
+      </div>
+      <div className="physical-calculator reference-body">
+        <div className="keypad-upper">
+          <div className="upper-key-grid">
+            {UPPER_LEFT_KEYS.map((key,index)=><button key={'ul'+index} className={'calc-key key-'+(key.kind||'function')+(key.action==='shift'&&shift?' is-on':'')+(key.action==='alpha'&&alpha?' is-on':'')} onClick={()=>pressKey(key)}><small className={'key-hint '+(index%2?'purple':'yellow')}>{KEY_HINTS[key.label]||' '}</small><span className="key-label">{key.label}</span></button>)}
+          </div>
+          <div className="direction-pad" aria-label="Expression cursor controls">
+            <button className="pad-up" aria-label="Previous history" onClick={()=>{if(history.length){setExpression(history[0].expression);setResult(history[0].result);}}}>▲</button>
+            <button className="pad-left" aria-label="Move cursor left" onClick={()=>{const el=expressionRef.current;if(el){const p=el.selectionStart;el.setSelectionRange(Math.max(0,p-1),Math.max(0,p-1));el.focus();}}}>◀</button>
+            <span className="pad-center"><i/></span>
+            <button className="pad-right" aria-label="Move cursor right" onClick={()=>{const el=expressionRef.current;if(el){const p=el.selectionEnd;el.setSelectionRange(Math.min(expression.length,p+1),Math.min(expression.length,p+1));el.focus();}}}>▶</button>
+            <button className="pad-down" aria-label="Clear expression" onClick={()=>{setExpression('');setResult('');setError('');}}>▼</button>
+          </div>
+          <div className="upper-key-grid">
+            {UPPER_RIGHT_KEYS.map((key,index)=><button key={'ur'+index} className={'calc-key key-'+(key.kind||'function')+(key.action==='shift'&&shift?' is-on':'')} onClick={()=>pressKey(key)}><small className={'key-hint '+(index%2?'purple':'yellow')}>{KEY_HINTS[key.label]||' '}</small><span className="key-label">{key.label}</span></button>)}
+          </div>
+        </div>
+        <div className="scientific-function-grid">
+          {SCIENTIFIC_FUNCTION_KEYS.flat().map((key,index)=><button key={'fn'+index} className={'calc-key key-'+(key.kind||'function')} onClick={()=>pressKey(key)}><small className={'key-hint '+(index%2?'purple':'yellow')}>{KEY_HINTS[key.label]||' '}</small><span className="key-label">{key.label}</span></button>)}
+        </div>
+        <div className="numeric-grid">
+          {NUMBER_KEYS.flat().map((key,index)=><button key={'num'+index} className={'calc-key key-'+(key.kind||'function')} onClick={()=>pressKey(key)}><small className={'key-hint '+(index%2?'purple':'yellow')}>{KEY_HINTS[key.label]||' '}</small><span className="key-label">{key.label}</span></button>)}
         </div>
         <div className="calc-bottom-label"><span>MathPro X</span><span>100-DIGIT ENGINE · {settings.angle}</span></div>
       </div>
-      <div className="calculator-footer-tools">
-        <button onClick={()=>setPage('tools')}>☷ ALL FUNCTIONS</button><button onClick={()=>setPage('graph')}>⌁ GRAPH</button><button onClick={()=>setPage('history')}>↶ HISTORY</button><button onClick={()=>setPage('settings')}>⚙ SETTINGS</button>
+      <div className="reference-footer-tools">
+        <button onClick={()=>setPage('tools')}>ALL FUNCTIONS</button><button onClick={()=>setPage('graph')}>GRAPH</button><button onClick={()=>setPage('history')}>HISTORY</button>
       </div>
-      <p className="precision-note">100-digit precision is available for supported BigNumber operations. Results from numerical and symbolic tools have their own method limits.</p>
     </section>}
-
     {page==='graph'&&<Panel title="Function Grapher" subtitle="Cartesian · Polar · Parametric · Implicit · one workspace">
       <div className="graph-device">
         <div className="graph-lcd-head"><b>Y= EDITOR</b><span>84 PLUS / GRAPH MODE</span></div>
@@ -391,7 +458,7 @@ export default function App() {
       <p className="muted small">100-digit precision applies to supported BigNumber operations; other methods can use numerical approximations.</p>
     </Panel>}
 
-    <footer className="app-footer"><button onClick={()=>setPage('calc')}>MATHPRO X</button><span>Development build · v0.3.0</span><span>{settings.angle}</span></footer>
+    {page!=='calc'&&<footer className="app-footer"><button onClick={()=>setPage('calc')}>MATHPRO X</button><span>Development build · v0.3.0</span><span>{settings.angle}</span></footer>}
   </main>;
 }
 
