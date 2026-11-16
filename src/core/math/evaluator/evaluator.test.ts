@@ -12,7 +12,7 @@ import {
   dmsToDecimalDegrees,
   formatDms
 } from './dms';
-import { decimal, numericMath } from './value';
+import { decimal, isMatrixValue, numericMath } from './value';
 
 describe('MathPro X typed decimal and complex values', () => {
   it('keeps decimal calculations at high precision', () => {
@@ -144,7 +144,7 @@ describe('MathPro X AST evaluator arithmetic and calculator rules', () => {
   it('constructs matrices and evaluates matrix functions and products', () => {
     expect(evaluateToString('det([[1,2],[3,4]])')).toBe('-2');
     const inverse = evaluateMath('inverse([[1,2],[3,4]])').value;
-    expect(inverse.kind).toBe('matrix');
+    expect(isMatrixValue(inverse)).toBe(true);
     expect(evaluateToString('transpose([[1,2],[3,4]])')).toBe('[[1, 3], [2, 4]]');
     expect(evaluateToString('[[1,2],[3,4]]*[[2,0],[1,2]]')).toBe('[[4, 4], [10, 8]]');
   });
