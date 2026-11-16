@@ -141,6 +141,10 @@ describe('MathPro X Pratt parser', () => {
 
     const degreesOnly = parseExpression('45°');
     expect(degreesOnly.type).toBe('SexagesimalLiteral');
+
+    const product = parseExpression('30°15′20″x');
+    expect(product.type).toBe('BinaryExpression');
+    expect((product as BinaryExpressionNode).implicit).toBe(true);
   });
 
   it('parses rectangular matrix literals and rejects ragged matrices', () => {
