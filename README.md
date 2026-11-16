@@ -2,37 +2,46 @@
 
 **Advanced Scientific & Graphing Calculator for Android and Web**
 
-MathPro X is an early React + TypeScript calculator project intended to share one codebase between the web/PWA experience and an Android package through Capacitor.
+MathPro X is a React + TypeScript scientific calculator project with a responsive web/PWA interface and an Android debug package built through Capacitor.
 
-> **Development status:** v0.1.0 is a preliminary source drop. The calculator UI, math modules and build workflows are still being integrated and validated. Do not treat this repository as a production release or use it as the sole source for high-stakes engineering calculations.
+## Current project status
 
-## Repository contents
+**v0.1.0 — developer preview.** The repository contains the application source, calculation engine, graph renderer, reference datasets, OCR adapter, unit tests and GitHub Actions pipelines.
 
-- `src/App.tsx` — current calculator screen and interface entry point.
-- `src/lib/engine.ts` — numerical and symbolic calculation helpers, number theory, matrices and statistics.
-- `src/components/GraphCanvas.tsx` — Cartesian, polar, parametric and implicit graph rendering.
-- `src/lib/elements.ts` — periodic-table element data.
-- `src/lib/reference.ts` — starter mathematics, physics and chemistry formula library.
-- `src/lib/storage.ts` — local history and settings persistence.
-- `src/lib/engine.test.ts` — initial unit tests.
-- `api/math-ocr.ts` — optional server-side Mathpix OCR proxy.
-- `.github/workflows/` — GitHub Actions workflows for web deployment and a debug Android APK.
+The web production build, TypeScript check and unit-test suite have passed in GitHub Actions. An Android debug APK was also built successfully from the application source and uploaded as an Actions artifact. It has not yet been manually tested on a physical Android device and is not a signed production release.
 
-## Implemented calculation helpers
+## Features included
 
-The calculation engine includes:
-- Math.js BigNumber configuration at 100 significant digits for supported operations.
-- Degree, radian and gradian trigonometric helpers.
-- Symbolic differentiation, integration and equation solving through Nerdamer where supported.
-- Composite Simpson numerical integration.
-- Matrix determinant, inverse, transpose, row-reduced echelon form, eigenvalues and matrix self-product.
+- Scientific expression entry and evaluation using Math.js.
+- 100-significant-digit BigNumber configuration for supported operations.
+- DEG/RAD/GRAD angle modes and inverse trigonometric helpers.
+- Symbolic differentiation, antiderivatives and equation solving for supported forms through Nerdamer.
+- Composite Simpson numerical definite integration.
+- Cartesian, polar, parametric and implicit graph rendering.
+- Complex-number expressions.
+- Matrix determinant, inverse, transpose, RREF, eigenvalues and matrix self-product.
 - Descriptive statistics and simple linear regression.
-- Prime testing, prime factors, divisors, GCD/LCM, continued fractions and rational approximation.
-- Integer base conversion and permutations/combinations.
+- Prime testing, prime factorization, divisors, GCD/LCM, continued fractions and rational approximation.
+- Binary, octal, decimal and hexadecimal conversion; permutations and combinations.
+- Searchable starter mathematics, physics and chemistry formula reference.
+- 118-element periodic-table browser.
+- Local history up to 1,000 calculations with CSV export.
+- Camera image selection with a server-side OCR adapter.
+- Five appearance themes and saved angle/theme settings.
 
-**Accuracy note:** the 100-digit setting is not a guarantee that all library functions or numerical algorithms return 100 correct digits. Graph sampling, numerical integration, symbolic transforms, statistics and OCR have their own limitations.
+## Repository structure
 
-## Run the web app
+- `src/App.tsx` — application UI and navigation.
+- `src/lib/engine.ts` — numeric, symbolic, matrix, statistics and number-theory helpers.
+- `src/components/GraphCanvas.tsx` — graph renderer.
+- `src/lib/elements.ts` — element data for the periodic-table view.
+- `src/lib/reference.ts` — formula-library content.
+- `src/lib/storage.ts` — history and settings persistence.
+- `src/lib/engine.test.ts` — calculation-engine unit tests.
+- `api/math-ocr.ts` — server-side Mathpix OCR proxy.
+- `.github/workflows/` — web deployment and Android debug build workflows.
+
+## Run locally
 
 Requirements: Node.js 22+ and npm.
 
@@ -41,17 +50,12 @@ npm install
 npm run dev
 ```
 
-Production bundle:
-
-```bash
-npm run build
-npm run preview
-```
-
-Run unit tests:
+Production build and tests:
 
 ```bash
 npm test
+npm run build
+npm run preview
 ```
 
 ## Android debug build
@@ -65,27 +69,29 @@ cd android
 ./gradlew assembleDebug
 ```
 
-The GitHub Actions Android workflow runs the same general build path and uploads a debug APK artifact when successful. It does not create a signed release APK.
+GitHub Actions runs this build path and uploads `app-debug.apk` when successful. A debug APK is for development/testing and is not a signed release package.
 
 ## Web deployment
 
-The `web-pages.yml` workflow builds the static web app and deploys it to GitHub Pages. In repository settings, configure **Pages → Build and deployment → Source → GitHub Actions** before expecting the deploy job to publish the site.
+The web bundle builds and uploads successfully as a GitHub Pages artifact. To publish it, enable Pages in **Settings → Pages → Build and deployment → Source → GitHub Actions**. Until Pages is enabled, the deploy job returns GitHub's 404 error even though the web build itself passes.
 
 ## Camera OCR
 
-The OCR endpoint requires server-side Vercel environment variables:
+The OCR endpoint requires these server-side Vercel environment variables:
+
 - `MATHPIX_APP_ID`
 - `MATHPIX_APP_KEY`
 
-Do not commit provider credentials or expose them through frontend environment variables. GitHub Pages is static hosting and cannot run `api/math-ocr.ts`; deploy the API separately and configure the client to use that server endpoint.
+Do not commit provider credentials or expose them in frontend variables. GitHub Pages is static hosting and cannot execute `api/math-ocr.ts`; deploy the OCR API separately and point the client to that API.
 
-## Current limitations
+## Accuracy and known limitations
 
-- The main application screen is still a basic calculator shell; the advanced modules are in the repository but are not all connected to the UI yet.
-- Dependency installation, production type-check/build, unit tests and the Android packaging workflow have not yet passed end-to-end verification.
-- No APK or live web deployment is confirmed at this point.
-- OCR requires external credentials and a separately deployed serverless endpoint.
-- Matrix multiplication currently multiplies one matrix by itself; a two-matrix input UI is not implemented.
-- Formula and periodic-table datasets are starter references, not a complete scientific database.
+- The 100-digit setting is not a guarantee that every operation returns 100 correct digits. Graph sampling, numerical integration, matrix/statistics calculations, symbolic transforms and OCR have method-specific limits.
+- Symbolic solving and integration are limited to expressions supported by Nerdamer.
+- Matrix multiplication currently calculates a matrix multiplied by itself; a separate second-matrix input has not been added.
+- Formula and periodic-table content is an educational starter dataset, not a complete engineering or chemistry reference.
+- OCR is unavailable until the external service and credentials are configured.
+- The APK has passed CI packaging but still requires installation and manual testing on a physical Android device.
+- No signed production APK or Play Store release is provided.
 
-See [STATUS.md](STATUS.md) for the current validation status and follow-up work.
+See [STATUS.md](STATUS.md) for the latest build and verification record.
