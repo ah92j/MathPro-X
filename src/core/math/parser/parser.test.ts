@@ -123,6 +123,18 @@ describe('MathPro X Pratt parser', () => {
     expect(parseExpression('|x+1|').type).toBe('AbsoluteExpression');
   });
 
+  it('parses degree-minute-second literals as a dedicated AST node', () => {
+    const angle = parseExpression('30°15′20″');
+    expect(angle.type).toBe('SexagesimalLiteral');
+    if (angle.type !== 'SexagesimalLiteral') throw new Error('Expected a sexagesimal literal.');
+    expect(angle.degrees).toBe('30');
+    expect(angle.minutes).toBe('15');
+    expect(angle.seconds).toBe('20');
+
+    const degreesOnly = parseExpression('45°');
+    expect(degreesOnly.type).toBe('SexagesimalLiteral');
+  });
+
   it('parses rectangular matrix literals and rejects ragged matrices', () => {
     const matrix = parseExpression('[[1,2],[3,4]]');
     expect(matrix.type).toBe('ArrayExpression');
