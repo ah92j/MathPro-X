@@ -279,7 +279,7 @@ export default function App() {
         </div>
       </header>
       <nav className="primary-nav">
-        <button className={page==='calc'?'active':''} onClick={()=>setPage('calc')}>CALCULATOR</button>
+        <button onClick={()=>setPage('calc')}>CALCULATOR</button>
         <button className={['tools','solver','calculus','number','complex','stats','matrix','formulas','periodic','camera','converter'].includes(page)?'active':''} onClick={()=>setPage('tools')}>FUNCTIONS & TOOLS</button>
         <button className={page==='graph'?'active':''} onClick={()=>setPage('graph')}>GRAPH</button>
       </nav>
@@ -458,7 +458,7 @@ export default function App() {
       <p className="muted small">100-digit precision applies to supported BigNumber operations; other methods can use numerical approximations.</p>
     </Panel>}
 
-    {page!=='calc'&&<footer className="app-footer"><button onClick={()=>setPage('calc')}>MATHPRO X</button><span>Development build · v0.3.0</span><span>{settings.angle}</span></footer>}
+    {page!=='calc'&&<footer className="app-footer"><button onClick={()=>setPage('calc')}>MATHPRO X</button><span>Development build · v0.4.0</span><span>{settings.angle}</span></footer>}
   </main>;
 }
 
