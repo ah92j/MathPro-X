@@ -1,6 +1,6 @@
 {
-  "name":"MathPro Scientific Calculator",
-  "short_name":"MathPro",
+  "name":"MathPro X — Scientific Calculator",
+  "short_name":"MathPro X",
   "description":"Scientific calculator, graphing and STEM tools",
   "start_url":"./",
   "display":"standalone",
