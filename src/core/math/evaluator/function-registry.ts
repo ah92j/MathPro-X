@@ -463,16 +463,17 @@ const FUNCTIONS: Readonly<Record<string, MathFunctionDefinition>> = {
     real(args[0], 'hypot', 0),
     real(args[1], 'hypot', 1)
   ))),
-  min: definition(1, 1000, args => args.reduce((minimum, value) =>
-    numericMath.smaller(real(value, 'min', 0), real(minimum, 'min', 0)) ? value : minimum
-  )),
-  max: definition(1, 1000, args => args.reduce((maximum, value) =>
-    numericMath.larger(real(value, 'max', 0), real(maximum, 'max', 0)) ? value : maximum
-  )),
-  mean: definition(1, 1000, args => decimalResult(numericMath.divide(
-    args.reduce((total, value) => numericMath.add(total, real(value, 'mean', 0)), decimal(0)),
-    args.length
-  ))),
+  min: definition(1, 1000, args => args
+    .map(value => real(value, 'min', 0))
+    .reduce<DecimalValue>((minimum, value) => numericMath.smaller(value, minimum) ? value : minimum)),
+  max: definition(1, 1000, args => args
+    .map(value => real(value, 'max', 0))
+    .reduce<DecimalValue>((maximum, value) => numericMath.larger(value, maximum) ? value : maximum)),
+  mean: definition(1, 1000, args => {
+    const values = args.map(value => real(value, 'mean', 0));
+    const total = values.reduce<DecimalValue>((sum, value) => numericMath.add(sum, value), decimal(0));
+    return decimalResult(numericMath.divide(total, args.length));
+  }),
   median: definition(1, 1000, args => {
     const values = args.map(value => real(value, 'median', 0)).sort((a, b) => numericMath.compare(a, b));
     const middle = Math.floor(values.length / 2);
@@ -481,9 +482,10 @@ const FUNCTIONS: Readonly<Record<string, MathFunctionDefinition>> = {
       : values[middle];
   }),
   mode: definition(1, 1000, args => {
-    const counts = new Map<string, { value: MathValue; count: number }>();
-    for (const value of args) {
-      const key = real(value, 'mode', 0).toString();
+    const counts = new Map<string, { value: DecimalValue; count: number }>();
+    for (const argument of args) {
+      const value = real(argument, 'mode', 0);
+      const key = value.toString();
       const entry = counts.get(key);
       counts.set(key, { value, count: (entry?.count ?? 0) + 1 });
     }
@@ -491,8 +493,9 @@ const FUNCTIONS: Readonly<Record<string, MathFunctionDefinition>> = {
   }),
   variance: definition(1, 1000, args => {
     const values = args.map(value => real(value, 'variance', 0));
-    const average = numericMath.divide(values.reduce((sum, value) => numericMath.add(sum, value), decimal(0)), values.length);
-    const squared = values.reduce((sum, value) => {
+    const total = values.reduce<DecimalValue>((sum, value) => numericMath.add(sum, value), decimal(0));
+    const average = decimalResult(numericMath.divide(total, values.length));
+    const squared = values.reduce<DecimalValue>((sum, value) => {
       const difference = numericMath.subtract(value, average);
       return numericMath.add(sum, numericMath.multiply(difference, difference));
     }, decimal(0));
@@ -500,21 +503,24 @@ const FUNCTIONS: Readonly<Record<string, MathFunctionDefinition>> = {
   }),
   stddev: definition(1, 1000, args => {
     const values = args.map(value => real(value, 'stddev', 0));
-    const average = numericMath.divide(values.reduce((sum, value) => numericMath.add(sum, value), decimal(0)), values.length);
-    const squared = values.reduce((sum, value) => {
+    const total = values.reduce<DecimalValue>((sum, value) => numericMath.add(sum, value), decimal(0));
+    const average = decimalResult(numericMath.divide(total, values.length));
+    const squared = values.reduce<DecimalValue>((sum, value) => {
       const difference = numericMath.subtract(value, average);
       return numericMath.add(sum, numericMath.multiply(difference, difference));
     }, decimal(0));
     return decimalResult(numericMath.sqrt(numericMath.divide(squared, values.length)));
   }),
-  sum: definition(1, 1000, args => decimalResult(args.reduce(
-    (total, value) => numericMath.add(total, real(value, 'sum', 0)),
-    decimal(0)
-  ))),
-  product: definition(1, 1000, args => decimalResult(args.reduce(
-    (total, value) => numericMath.multiply(total, real(value, 'product', 0)),
-    decimal(1)
-  ))),
+  sum: definition(1, 1000, args => {
+    const total = args.map(value => real(value, 'sum', 0))
+      .reduce<DecimalValue>((sum, value) => numericMath.add(sum, value), decimal(0));
+    return total;
+  }),
+  product: definition(1, 1000, args => {
+    const total = args.map(value => real(value, 'product', 0))
+      .reduce<DecimalValue>((product, value) => numericMath.multiply(product, value), decimal(1));
+    return total;
+  }),
   real: definition(1, 1, args => isComplexValue(args[0]) ? args[0].real : real(args[0], 'real', 0)),
   imaginary: definition(1, 1, args => isComplexValue(args[0]) ? args[0].imaginary : decimal(0)),
   conjugate: definition(1, 1, args => isComplexValue(args[0]) ? complexConjugate(args[0]) : complex(real(args[0], 'conjugate', 0), 0)),
