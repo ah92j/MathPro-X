@@ -150,6 +150,11 @@ export default function App() {
   const [tableStep,setTableStep]=useState('1');
   const [tableEnd,setTableEnd]=useState('5');
   const [tableRows,setTableRows]=useState<Array<{x:number;y:string}>>([]);
+  const [converterCategory,setConverterCategory]=useState('Length');
+  const [converterValue,setConverterValue]=useState('1');
+  const [converterFrom,setConverterFrom]=useState('mm');
+  const [converterTo,setConverterTo]=useState('cm');
+  const [converterResult,setConverterResult]=useState('');
 
   useEffect(()=>saveSettings(settings),[settings]);
   useEffect(()=>saveHistory(history),[history]);
