@@ -70,7 +70,7 @@ button{color:inherit;cursor:pointer}
 .lcd-footer{display:flex;justify-content:space-between;margin-top:5px;color:#71806e;font:700 7px ui-monospace,monospace;letter-spacing:.12em}
 .physical-keypad{display:flex;flex-direction:column;gap:7px;padding:13px 2px 4px}
 .key-row{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px}
-.model-stage-basic300 .key-row{grid-template-columns:repeat(4,minmax(0,1fr))}
+.model-stage-basic300 .key-row,.model-stage-scientific991es .key-row{grid-template-columns:repeat(4,minmax(0,1fr))}
 .calc-key{min-width:0;min-height:47px;border:1px solid #111a23;border-radius:9px;background:linear-gradient(155deg,#596574,#3b4654);box-shadow:0 3px 0 #111923,0 4px 6px #0005,inset 0 1px #ffffff24;color:#f4f6f9;font-size:clamp(12px,2.4vw,16px);font-weight:680;text-align:center;padding:5px 2px;text-shadow:0 1px 1px #0008;user-select:none}
 .calc-key:active{transform:translateY(2px);box-shadow:0 1px 0 #111923,inset 0 1px #0005}
 .calc-key.key-number{background:linear-gradient(155deg,#4b5664,#343e4c);font-size:clamp(16px,3vw,21px);font-weight:750}
@@ -96,8 +96,8 @@ button{color:inherit;cursor:pointer}
 .panel-title h2{margin:0 0 4px;font-size:21px;letter-spacing:.01em}.panel-title p{margin:0 0 17px;color:#9daabb;font-size:11px;line-height:1.5}
 .field{display:flex;flex-direction:column;gap:6px;min-width:0;margin:10px 0}
 .field>span{font-size:10px;color:#aab7c6;font-weight:800;letter-spacing:.04em}
-.field input{width:100%;min-width:0;border:1px solid #3b4b5e;border-radius:8px;background:#0c131c;color:#edf2f7;padding:12px 11px;font-size:14px;outline:none}
-.field input:focus{border-color:#69bfae;box-shadow:0 0 0 2px #69bfae22}
+.field input,.field select{width:100%;min-width:0;border:1px solid #3b4b5e;border-radius:8px;background:#0c131c;color:#edf2f7;padding:12px 11px;font-size:14px;outline:none}
+.field input:focus,.field select:focus{border-color:#69bfae;box-shadow:0 0 0 2px #69bfae22}
 .field-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 10px}
 .primary-action,.tool-panel>button:not(.formula-card),.action-row button{border:1px solid #4d8c80;border-radius:8px;background:linear-gradient(145deg,#70cbbb,#3d998d);color:#0d2421;padding:11px 13px;font-size:10px;font-weight:950;letter-spacing:.06em;min-height:40px}
 .action-row{display:flex;flex-wrap:wrap;gap:7px;margin:10px 0}
@@ -132,7 +132,7 @@ button{color:inherit;cursor:pointer}
 .app-footer button{border:0;background:transparent;color:#86d6c7;font-size:8px;font-weight:900;letter-spacing:.15em;padding:0}
 .error-text{color:#c33d3d}
 .theme-midnight{--bg:#070b15;--accent:#73b7ff}.theme-light{--bg:#e8edf1;--ink:#17222e;color:#18212b}
-.theme-light .tool-panel{background:#f7f9fc;color:#18212b}.theme-light .field input,.theme-light .output-box,.theme-light .formula-card,.theme-light .history-list button{background:#eef2f6;color:#18212b}
+.theme-light .tool-panel{background:#f7f9fc;color:#18212b}.theme-light .field input,.theme-light .field select,.theme-light .output-box,.theme-light .formula-card,.theme-light .history-list button{background:#eef2f6;color:#18212b}
 .theme-violet{--bg:#130c20;--accent:#d2a6ff}.theme-casio-green{--bg:#07120c;--accent:#a3d977}
 .theme-casio-green .lcd-screen{background:#dbe8ce}
 @media(max-width:540px){
