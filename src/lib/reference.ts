@@ -1,0 +1,22 @@
+export const FORMULAS = [
+{category:'Mathematics',title:'Quadratic equation',formula:'x = (-b ± √(b² - 4ac)) / 2a',note:'Roots of ax² + bx + c = 0.'},
+{category:'Mathematics',title:'Pythagorean theorem',formula:'a² + b² = c²',note:'Right triangle with hypotenuse c.'},
+{category:'Mathematics',title:'Circle area',formula:'A = πr²',note:'r is the radius.'},
+{category:'Mathematics',title:'Derivative definition',formula:"f'(x) = lim[h→0] (f(x+h)-f(x))/h",note:'Limit definition of the derivative.'},
+{category:'Mathematics',title:'Integration by parts',formula:'∫u dv = uv − ∫v du',note:'Useful for products of functions.'},
+{category:'Mathematics',title:'Euler identity',formula:'e^(iπ) + 1 = 0',note:'Links five fundamental constants.'},
+{category:'Physics',title:'Newton second law',formula:'F = ma',note:'Net force equals mass times acceleration.'},
+{category:'Physics',title:'Kinetic energy',formula:'Eₖ = ½mv²',note:'m is mass and v is speed.'},
+{category:'Physics',title:'Potential energy',formula:'Eₚ = mgh',note:'g is gravitational acceleration and h is height.'},
+{category:'Physics',title:'Ohm law',formula:'V = IR',note:'Voltage, current and resistance.'},
+{category:'Physics',title:'Electric power',formula:'P = VI = I²R = V²/R',note:'For a resistive electrical element.'},
+{category:'Physics',title:'Wave equation',formula:'v = fλ',note:'Wave speed is frequency times wavelength.'},
+{category:'Physics',title:'Ideal gas law',formula:'PV = nRT',note:'Use consistent SI units.'},
+{category:'Physics',title:'Momentum',formula:'p = mv',note:'Linear momentum.'},
+{category:'Physics',title:'Coulomb law',formula:'F = k |q₁q₂| / r²',note:'Magnitude of electrostatic force in vacuum.'},
+{category:'Chemistry',title:'Mole relation',formula:'n = m / M',note:'Mass divided by molar mass.'},
+{category:'Chemistry',title:'Molarity',formula:'C = n / V',note:'Amount of substance per solution volume.'},
+{category:'Chemistry',title:'pH',formula:'pH = −log₁₀[H⁺]',note:'For dilute solutions, concentration approximates activity.'},
+{category:'Chemistry',title:'Density',formula:'ρ = m / V',note:'Mass per unit volume.'},
+{category:'Chemistry',title:'Dilution',formula:'C₁V₁ = C₂V₂',note:'For dilution without changing solute amount.'}
+] as const;
