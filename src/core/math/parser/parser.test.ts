@@ -23,13 +23,15 @@ describe('MathPro X expression tokenizer', () => {
   });
 
   it('normalizes calculator symbols and word aliases', () => {
-    const tokens = tokenize('Ans + π × √9 + nCr + Σ(1,2)');
+    const tokens = tokenize('Ans + π × √9 + nCr + Σ(1,2) + Sin(30) + LOGBASE(2,8)');
     expect(tokens.map(token => token.value).filter(Boolean)).toContain('ans');
     expect(tokens.map(token => token.value).filter(Boolean)).toContain('pi');
     expect(tokens.map(token => token.value).filter(Boolean)).toContain('*');
     expect(tokens.map(token => token.value).filter(Boolean)).toContain('sqrt');
     expect(tokens.map(token => token.value).filter(Boolean)).toContain('nCr');
     expect(tokens.map(token => token.value).filter(Boolean)).toContain('sum');
+    expect(tokens.map(token => token.value).filter(Boolean)).toContain('sin');
+    expect(tokens.map(token => token.value).filter(Boolean)).toContain('logBase');
   });
 
   it('reports invalid characters and malformed numeric separators', () => {
