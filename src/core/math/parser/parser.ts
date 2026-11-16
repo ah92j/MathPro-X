@@ -90,7 +90,6 @@ function isPrimaryStart(token: Token): boolean {
     token.kind === 'identifier' ||
     token.kind === 'leftParen' ||
     token.kind === 'leftBracket' ||
-    token.kind === 'bar' ||
     (token.kind === 'operator' && ['sqrt', 'cbrt', 'nthRoot'].includes(token.value ?? ''));
 }
 
