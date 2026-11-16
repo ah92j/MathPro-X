@@ -76,9 +76,12 @@ const PI = decimal('3.1415926535897932384626433832795028841971693993751058209749
 const E = decimal('2.7182818284590452353602874713526624977572470936999595749669676277240766303535475945713821785251664274');
 
 function toMathValue(value: MathValue | NumericInput): MathValue {
-  if (typeof value === 'boolean' || isDecimalValue(value) || isComplexValue(value) ||
-      isMatrixValue(value) || isSexagesimalValue(value)) return value;
-  return decimal(value);
+  if (typeof value === 'boolean' || isDecimalValue(value)) return value as MathValue;
+  if (typeof value === 'object' && value !== null && 'kind' in value) {
+    const kind = (value as { kind?: string }).kind;
+    if (kind === 'complex' || kind === 'matrix' || kind === 'sexagesimal') return value as MathValue;
+  }
+  return decimal(value as NumericInput);
 }
 
 function initialContext(options: MathEvaluatorOptions): EvaluationContext {
