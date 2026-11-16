@@ -22,8 +22,8 @@ describe('MathPro X symbolic CAS', () => {
 
   it('expands and factors polynomial expressions', () => {
     expect(expandSymbolic('(x+1)^3').output).toContain('x^3');
-    expect(factorSymbolic('x^2+5*x+6').output).toContain('(2+x)');
-    expect(factorSymbolic('x^2+5*x+6').output).toContain('(3+x)');
+    expect(factorSymbolic('x^2+5*x+6').output).toContain('(x+2)');
+    expect(factorSymbolic('x^2+5*x+6').output).toContain('(x+3)');
   });
 
   it('differentiates and integrates with a selected variable', () => {
