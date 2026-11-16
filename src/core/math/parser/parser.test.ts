@@ -48,6 +48,10 @@ describe('MathPro X expression tokenizer', () => {
     expect(tokens.filter(token => token.kind === 'number').map(token => token.value))
       .toEqual(['1.25', '2.50']);
     expect(tokens.filter(token => token.kind === 'semicolon')).toHaveLength(1);
+
+    const localized = parseExpression('max(1,25;2,50)', { decimalSeparator: ',' });
+    expect(localized.type).toBe('CallExpression');
+    expect((localized as CallExpressionNode).arguments).toHaveLength(2);
   });
 });
 
